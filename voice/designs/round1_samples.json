@@ -1,0 +1,685 @@
+{
+ "model": "qwen3-tts-voicedesign-q8_0.gguf",
+ "engine": "audio.cpp vdes",
+ "seed": 1234,
+ "lines": {
+  "calm": "Something sweet, close by. I have been hungry for a while, so I want it before it goes.",
+  "pain": "Sharp pain all over. The dark shape is near again.",
+  "dying": "The dark shape is coming down, crushing me, I can't move, my body is in pieces, I'm dying."
+ },
+ "delivery_suffix": {
+  "calm": "",
+  "pain": " Speaking in short, clipped, pained bursts.",
+  "dying": " Speaking weakly and fearfully, getting slower and fainter toward the end."
+ },
+ "voices": {
+  "whisper": {
+   "num": "01",
+   "design_prompt": "A tiny, breathy voice whispering very close to the microphone. Soft, airy and intimate, almost no voiced tone, small quick breaths between phrases.",
+   "files": {
+    "calm": "01_whisper_calm.mp3",
+    "pain": "01_whisper_pain.mp3",
+    "dying": "01_whisper_dying.mp3",
+    "all": "01_whisper_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 6.64,
+     "peak": 0.433,
+     "rms": 0.0803,
+     "active": 0.73,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 4.64,
+     "peak": 0.5,
+     "rms": 0.0983,
+     "active": 0.69,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 8.8,
+     "peak": 0.28,
+     "rms": 0.0445,
+     "active": 0.54,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.409,
+     "rms": 0.0759,
+     "f0_median": 207,
+     "f0_p90": 250
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.471,
+     "rms": 0.0933,
+     "f0_median": 186,
+     "f0_p90": 202
+    },
+    "dying": {
+     "heard": "The dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 1.0,
+     "mp3_peak": 0.257,
+     "rms": 0.0416,
+     "f0_median": 326,
+     "f0_p90": 363
+    }
+   }
+  },
+  "child": {
+   "num": "02",
+   "design_prompt": "A young child, about seven years old, curious and bright, speaking with wonder. Slightly high pitched, gentle and earnest.",
+   "files": {
+    "calm": "02_child_calm.mp3",
+    "pain": "02_child_pain.mp3",
+    "dying": "02_child_dying.mp3",
+    "all": "02_child_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 6.4,
+     "peak": 0.7,
+     "rms": 0.0954,
+     "active": 0.7,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 4.48,
+     "peak": 0.641,
+     "rms": 0.0468,
+     "active": 0.54,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 8.32,
+     "peak": 0.664,
+     "rms": 0.0819,
+     "active": 0.6,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by I have been hungry for a while, so I want it before it goes",
+     "match": 1.0,
+     "mp3_peak": 0.654,
+     "rms": 0.0903,
+     "f0_median": 457,
+     "f0_p90": 592
+    },
+    "pain": {
+     "heard": "Sharp paint all over. The dark shape is near again.",
+     "match": 0.9,
+     "mp3_peak": 0.611,
+     "rms": 0.0444,
+     "f0_median": 390,
+     "f0_p90": 457
+    },
+    "dying": {
+     "heard": "The dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 1.0,
+     "mp3_peak": 0.63,
+     "rms": 0.0777,
+     "f0_median": 444,
+     "f0_p90": 500
+    }
+   }
+  },
+  "eerie": {
+   "num": "03",
+   "design_prompt": "A flat, calm, emotionless adult voice with an eerie stillness. Even pitch, slow measured pace, no inflection, quiet and distant.",
+   "files": {
+    "calm": "03_eerie_calm.mp3",
+    "pain": "03_eerie_pain.mp3",
+    "dying": "03_eerie_dying.mp3",
+    "all": "03_eerie_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 7.92,
+     "peak": 0.669,
+     "rms": 0.0624,
+     "active": 0.66,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 5.04,
+     "peak": 0.514,
+     "rms": 0.058,
+     "active": 0.58,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 9.04,
+     "peak": 0.686,
+     "rms": 0.0708,
+     "active": 0.57,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.608,
+     "rms": 0.0586,
+     "f0_median": 93,
+     "f0_p90": 125
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.469,
+     "rms": 0.0549,
+     "f0_median": 118,
+     "f0_p90": 158
+    },
+    "dying": {
+     "heard": "The dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 1.0,
+     "mp3_peak": 0.648,
+     "rms": 0.0669,
+     "f0_median": 118,
+     "f0_p90": 142
+    }
+   }
+  },
+  "nervous": {
+   "num": "04",
+   "design_prompt": "A thin, high, brittle voice, nervous and jittery, slightly trembling, speaking quickly with tense, shallow breath.",
+   "files": {
+    "calm": "04_nervous_calm.mp3",
+    "pain": "04_nervous_pain.mp3",
+    "dying": "04_nervous_dying.mp3",
+    "all": "04_nervous_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 6.32,
+     "peak": 0.747,
+     "rms": 0.1068,
+     "active": 0.68,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 4.88,
+     "peak": 0.61,
+     "rms": 0.0842,
+     "active": 0.62,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 8.8,
+     "peak": 0.562,
+     "rms": 0.0986,
+     "active": 0.69,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet, close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.71,
+     "rms": 0.1001,
+     "f0_median": 320,
+     "f0_p90": 390
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.575,
+     "rms": 0.0798,
+     "f0_median": 372,
+     "f0_p90": 421
+    },
+    "dying": {
+     "heard": "The dark shape is coming down... Crushing me, I can't move! My body is in pieces... I'm dying!",
+     "match": 1.0,
+     "mp3_peak": 0.518,
+     "rms": 0.0929,
+     "f0_median": 380,
+     "f0_p90": 457
+    }
+   }
+  },
+  "old": {
+   "num": "05",
+   "design_prompt": "A very old, frail voice, thin and quavering, soft and slow, with a dry rasp and tired breath.",
+   "files": {
+    "calm": "05_old_calm.mp3",
+    "pain": "05_old_pain.mp3",
+    "dying": "05_old_dying.mp3",
+    "all": "05_old_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 7.92,
+     "peak": 0.525,
+     "rms": 0.0835,
+     "active": 0.61,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 4.96,
+     "peak": 0.366,
+     "rms": 0.0355,
+     "active": 0.59,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 11.28,
+     "peak": 0.431,
+     "rms": 0.0548,
+     "active": 0.52,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet, close by. I've been hungry for a while, so I want it before it goes.",
+     "match": 0.91,
+     "mp3_peak": 0.496,
+     "rms": 0.0791,
+     "f0_median": 121,
+     "f0_p90": 154
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.35,
+     "rms": 0.0333,
+     "f0_median": 87,
+     "f0_p90": 444
+    },
+    "dying": {
+     "heard": "That dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 0.94,
+     "mp3_peak": 0.327,
+     "rms": 0.0517,
+     "f0_median": 148,
+     "f0_p90": 170
+    }
+   }
+  },
+  "rasp": {
+   "num": "06",
+   "design_prompt": "A small, dry, raspy and scratchy voice with a crackling, clicking texture, high and nasal, strange and not quite human.",
+   "files": {
+    "calm": "06_rasp_calm.mp3",
+    "pain": "06_rasp_pain.mp3",
+    "dying": "06_rasp_dying.mp3",
+    "all": "06_rasp_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 8.48,
+     "peak": 0.71,
+     "rms": 0.0871,
+     "active": 0.74,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 3.92,
+     "peak": 0.524,
+     "rms": 0.0946,
+     "active": 0.71,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 8.88,
+     "peak": 0.535,
+     "rms": 0.0595,
+     "active": 0.58,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.677,
+     "rms": 0.0825,
+     "f0_median": 117,
+     "f0_p90": 197
+    },
+    "pain": {
+     "heard": "Sharp pain all over? The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.493,
+     "rms": 0.0896,
+     "f0_median": 158,
+     "f0_p90": 190
+    },
+    "dying": {
+     "heard": "The dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 1.0,
+     "mp3_peak": 0.512,
+     "rms": 0.0562,
+     "f0_median": 210,
+     "f0_p90": 250
+    }
+   }
+  },
+  "innocent": {
+   "num": "07",
+   "design_prompt": "A soft, innocent young woman's voice, gentle and warm, slightly breathy, simple and sincere, speaking quietly.",
+   "files": {
+    "calm": "07_innocent_calm.mp3",
+    "pain": "07_innocent_pain.mp3",
+    "dying": "07_innocent_dying.mp3",
+    "all": "07_innocent_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 6.0,
+     "peak": 0.637,
+     "rms": 0.0861,
+     "active": 0.68,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 5.36,
+     "peak": 0.543,
+     "rms": 0.0854,
+     "active": 0.6,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 8.72,
+     "peak": 0.595,
+     "rms": 0.0867,
+     "active": 0.7,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.607,
+     "rms": 0.0813,
+     "f0_median": 253,
+     "f0_p90": 311
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again. Aww...",
+     "match": 0.95,
+     "mp3_peak": 0.5,
+     "rms": 0.0807,
+     "f0_median": 262,
+     "f0_p90": 326
+    },
+    "dying": {
+     "heard": "A dark shape is coming down. Crushing me, I can't move. My body is in pieces. I'm dying.",
+     "match": 0.94,
+     "mp3_peak": 0.546,
+     "rms": 0.0818,
+     "f0_median": 333,
+     "f0_p90": 363
+    }
+   }
+  },
+  "synthetic": {
+   "num": "08",
+   "design_prompt": "An androgynous, synthetic-sounding voice, neither male nor female. Smooth and precise with a faint robotic evenness, mid pitch, clear diction.",
+   "files": {
+    "calm": "08_synthetic_calm.mp3",
+    "pain": "08_synthetic_pain.mp3",
+    "dying": "08_synthetic_dying.mp3",
+    "all": "08_synthetic_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 8.08,
+     "peak": 0.526,
+     "rms": 0.0931,
+     "active": 0.72,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 4.4,
+     "peak": 0.587,
+     "rms": 0.1262,
+     "active": 0.7,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 9.2,
+     "peak": 0.687,
+     "rms": 0.0805,
+     "active": 0.7,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.495,
+     "rms": 0.0881,
+     "f0_median": 177,
+     "f0_p90": 253
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.541,
+     "rms": 0.1197,
+     "f0_median": 280,
+     "f0_p90": 326
+    },
+    "dying": {
+     "heard": "The dark shape is coming down. Crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 1.0,
+     "mp3_peak": 0.656,
+     "rms": 0.076,
+     "f0_median": 222,
+     "f0_p90": 266
+    }
+   }
+  },
+  "low": {
+   "num": "09",
+   "design_prompt": "A gentle, low, warm male voice, soft-spoken and calm, close to the microphone and unhurried.",
+   "files": {
+    "calm": "09_low_calm.mp3",
+    "pain": "09_low_pain.mp3",
+    "dying": "09_low_dying.mp3",
+    "all": "09_low_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 7.92,
+     "peak": 0.686,
+     "rms": 0.0698,
+     "active": 0.6,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 4.72,
+     "peak": 0.302,
+     "rms": 0.0664,
+     "active": 0.67,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 8.16,
+     "peak": 0.415,
+     "rms": 0.0623,
+     "active": 0.57,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.64,
+     "rms": 0.0656,
+     "f0_median": 89,
+     "f0_p90": 105
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.284,
+     "rms": 0.0628,
+     "f0_median": 106,
+     "f0_p90": 114
+    },
+    "dying": {
+     "heard": "The dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 1.0,
+     "mp3_peak": 0.389,
+     "rms": 0.059,
+     "f0_median": 119,
+     "f0_p90": 154
+    }
+   }
+  },
+  "chitter": {
+   "num": "10",
+   "design_prompt": "A fast, high, chittering voice speaking rapidly in quick clipped bursts, excitable and twitchy, small and light.",
+   "files": {
+    "calm": "10_chitter_calm.mp3",
+    "pain": "10_chitter_pain.mp3",
+    "dying": "10_chitter_dying.mp3",
+    "all": "10_chitter_all.mp3"
+   },
+   "check": {
+    "calm": {
+     "dur": 5.2,
+     "peak": 0.606,
+     "rms": 0.0979,
+     "active": 0.74,
+     "clip_frac": 0.0
+    },
+    "pain": {
+     "dur": 3.2,
+     "peak": 0.605,
+     "rms": 0.101,
+     "active": 0.8,
+     "clip_frac": 0.0
+    },
+    "dying": {
+     "dur": 5.28,
+     "peak": 0.597,
+     "rms": 0.1143,
+     "active": 0.81,
+     "clip_frac": 0.0
+    }
+   },
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.574,
+     "rms": 0.0926,
+     "f0_median": 444,
+     "f0_p90": 484
+    },
+    "pain": {
+     "heard": "Sharp pain all over! The dark shape is near again!",
+     "match": 1.0,
+     "mp3_peak": 0.563,
+     "rms": 0.0952,
+     "f0_median": 470,
+     "f0_p90": 571
+    },
+    "dying": {
+     "heard": "The dark shape is coming down, crushing me, I can't move! My body is in pieces, I'm dying!",
+     "match": 1.0,
+     "mp3_peak": 0.549,
+     "rms": 0.1082,
+     "f0_median": 516,
+     "f0_p90": 571
+    }
+   }
+  },
+  "whisper_pitchup": {
+   "num": "11",
+   "design_prompt": "A tiny, breathy voice whispering very close to the microphone. Soft, airy and intimate, almost no voiced tone, small quick breaths between phrases.",
+   "post": "pitchup",
+   "source_voice": "whisper",
+   "files": {
+    "calm": "11_whisper_pitchup_calm.mp3",
+    "pain": "11_whisper_pitchup_pain.mp3",
+    "dying": "11_whisper_pitchup_dying.mp3",
+    "all": "11_whisper_pitchup_all.mp3"
+   },
+   "post_detail": "ffmpeg asetrate=24000*1.189,aresample=24000,atempo=0.841",
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by I have been hungry for a while. So I want it before it goes",
+     "match": 1.0,
+     "mp3_peak": 0.376,
+     "rms": 0.0782,
+     "f0_median": 248,
+     "f0_p90": 296
+    },
+    "pain": {
+     "heard": "Sharp pain all over. The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.445,
+     "rms": 0.0961,
+     "f0_median": 219,
+     "f0_p90": 238
+    },
+    "dying": {
+     "heard": "As the dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 0.97,
+     "mp3_peak": 0.255,
+     "rms": 0.0422,
+     "f0_median": 385,
+     "f0_p90": 432
+    }
+   }
+  },
+  "rasp_buzz": {
+   "num": "12",
+   "design_prompt": "A small, dry, raspy and scratchy voice with a crackling, clicking texture, high and nasal, strange and not quite human.",
+   "post": "buzz",
+   "source_voice": "rasp",
+   "files": {
+    "calm": "12_rasp_buzz_calm.mp3",
+    "pain": "12_rasp_buzz_pain.mp3",
+    "dying": "12_rasp_buzz_dying.mp3",
+    "all": "12_rasp_buzz_all.mp3"
+   },
+   "post_detail": "numpy: 190 Hz sawtooth (8 harmonics, 5.5 Hz vibrato) at 6% of peak, gated by speech envelope",
+   "whisper": {
+    "calm": {
+     "heard": "Something sweet close by. I have been hungry for a while, so I want it before it goes.",
+     "match": 1.0,
+     "mp3_peak": 0.681,
+     "rms": 0.0826,
+     "f0_median": 116,
+     "f0_p90": 195
+    },
+    "pain": {
+     "heard": "Sharp pain all over? The dark shape is near again.",
+     "match": 1.0,
+     "mp3_peak": 0.496,
+     "rms": 0.0898,
+     "f0_median": 158,
+     "f0_p90": 190
+    },
+    "dying": {
+     "heard": "The dark shape is coming down, crushing me. I can't move. My body is in pieces. I'm dying.",
+     "match": 1.0,
+     "mp3_peak": 0.528,
+     "rms": 0.0567,
+     "f0_median": 210,
+     "f0_p90": 250
+    }
+   }
+  }
+ }
+}

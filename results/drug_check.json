@@ -1,0 +1,2451 @@
+{
+ "meta": {
+  "device": "cuda:1",
+  "seeds": 3,
+  "concs": [
+   0.5,
+   1.0,
+   2.0
+  ],
+  "groups": {
+   "GF": 2,
+   "MN9": 2,
+   "groom": 2
+  },
+  "wall_s": 95.8
+ },
+ "control": {
+  "loom": [
+   {
+    "out_hz": 216.66666666666669,
+    "active_on": 0.0030770562395862635,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 211.66666666666669,
+    "active_on": 0.003065034610270799,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 218.33333333333334,
+    "active_on": 0.0030215163121488178,
+    "active_post_end": 0.0,
+    "persists": false
+   }
+  ],
+  "loom_weak": [
+   {
+    "out_hz": 133.33333333333334,
+    "active_on": 0.001327909174186196,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 130.0,
+    "active_on": 0.0012834291457189772,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 123.33333333333334,
+    "active_on": 0.001265396701745781,
+    "active_post_end": 0.0,
+    "persists": false
+   }
+  ],
+  "sugar": [
+   {
+    "out_hz": 85.0,
+    "active_on": 0.0010927661047757124,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 89.0,
+    "active_on": 0.0011018544565382035,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 103.0,
+    "active_on": 0.0011298408095846047,
+    "active_post_end": 0.0,
+    "persists": false
+   }
+  ],
+  "touch": [
+   {
+    "out_hz": 17.0,
+    "active_on": 0.0007178355296850092,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 16.0,
+    "active_on": 0.0007137962622350133,
+    "active_post_end": 0.0,
+    "persists": false
+   },
+   {
+    "out_hz": 16.0,
+    "active_on": 0.0007057177273350211,
+    "active_post_end": 0.0,
+    "persists": false
+   }
+  ]
+ },
+ "drugs": {
+  "ethanol": {
+   "0.5": {
+    "levers": [
+     [
+      "GABA synapses",
+      1.12
+     ],
+     [
+      "ACh synapses",
+      0.97
+     ],
+     [
+      "rest, all",
+      -0.17
+     ]
+    ],
+    "phen": {
+     "explore": 0.5840088300390643,
+     "ataxia": 0.23584905660377356,
+     "knockdown": 0.0026609219136498902
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 196.66666666666669,
+       "active_on": 0.0028217168329258,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 201.66666666666669,
+       "active_on": 0.00281835077671747,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 203.33333333333334,
+       "active_on": 0.002820995535166873,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 115.0,
+       "active_on": 0.0011862943808500254,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 118.33333333333334,
+       "active_on": 0.0011711471279125401,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 108.33333333333334,
+       "active_on": 0.0011552785772161274,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 77.0,
+       "active_on": 0.0009310511472240857,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 67.0,
+       "active_on": 0.0009542769350615627,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 73.0,
+       "active_on": 0.0009262905820151618,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 12.0,
+       "active_on": 0.0006839345350153998,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 6.0,
+       "active_on": 0.00065883337300471,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 9.0,
+       "active_on": 0.0006843673136707564,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "GABA synapses",
+      1.3
+     ],
+     [
+      "ACh synapses",
+      0.918
+     ],
+     [
+      "rest, all",
+      -0.507
+     ]
+    ],
+    "phen": {
+     "explore": 0.36252973138584954,
+     "ataxia": 0.5524861878453039,
+     "knockdown": 0.04094065243023712
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 186.66666666666669,
+       "active_on": 0.002537285083321912,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 170.0,
+       "active_on": 0.0025276677798695413,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 178.33333333333334,
+       "active_on": 0.002546181089015357,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 93.33333333333334,
+       "active_on": 0.0010670398180406188,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 90.0,
+       "active_on": 0.0010362644469930301,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 88.33333333333334,
+       "active_on": 0.0010266471435406584,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 25.0,
+       "active_on": 0.0006524859527261449,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 24.0,
+       "active_on": 0.0006661906101457743,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 26.0,
+       "active_on": 0.0006690758011814858,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 3.0,
+       "active_on": 0.0006073327130172606,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0006198832940226054,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005943493533565591,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "GABA synapses",
+      1.48
+     ],
+     [
+      "ACh synapses",
+      0.853
+     ],
+     [
+      "rest, all",
+      -1.007
+     ]
+    ],
+    "phen": {
+     "explore": -0.36006888287799665,
+     "ataxia": 0.8316008316008315,
+     "knockdown": 0.4058276855647092
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 160.0,
+       "active_on": 0.00225814285061683,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 153.33333333333334,
+       "active_on": 0.0022797817833846656,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 156.66666666666669,
+       "active_on": 0.0022528533337180254,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 66.66666666666667,
+       "active_on": 0.0009006604683145916,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 63.333333333333336,
+       "active_on": 0.0009143651257342209,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 60.0,
+       "active_on": 0.0008773385074425905,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 1.0,
+       "active_on": 0.0004463390532245616,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 1.0,
+       "active_on": 0.00045182091619241346,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 1.0,
+       "active_on": 0.00042801809014779397,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005572746485476669,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005566976103405246,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005566976103405246,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   }
+  },
+  "nicotine": {
+   "0.5": {
+    "levers": [
+     [
+      "rest, cholinergic-input cells",
+      0.6
+     ],
+     [
+      "ACh synapses",
+      0.985
+     ]
+    ],
+    "phen": {
+     "explore": 0.4
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 206.66666666666669,
+       "active_on": 0.00304796389664284,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 213.33333333333334,
+       "active_on": 0.003056138604577355,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 211.66666666666669,
+       "active_on": 0.003052291683196407,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 128.33333333333334,
+       "active_on": 0.001333198691085,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 135.0,
+       "active_on": 0.0012988168312427723,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 133.33333333333334,
+       "active_on": 0.0012978551008975348,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 90.0,
+       "active_on": 0.0010957955553632095,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 86.0,
+       "active_on": 0.0010845433103239348,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 87.0,
+       "active_on": 0.0010738681034918023,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 18.0,
+       "active_on": 0.000721586278031434,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 17.0,
+       "active_on": 0.0007158158959600113,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 21.0,
+       "active_on": 0.000722019056686791,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "rest, cholinergic-input cells",
+      1.5
+     ],
+     [
+      "ACh synapses",
+      0.945
+     ]
+    ],
+    "phen": {
+     "explore": 0.6400000000000001
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 203.33333333333334,
+       "active_on": 0.0030573407675089023,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 200.0,
+       "active_on": 0.0030210354469762004,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 203.33333333333334,
+       "active_on": 0.003080422295794594,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 115.0,
+       "active_on": 0.0012716479489898224,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 120.0,
+       "active_on": 0.0013009807245195559,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 111.66666666666667,
+       "active_on": 0.0012822269827874313,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 75.0,
+       "active_on": 0.0010337639480954132,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 77.0,
+       "active_on": 0.0010529504684828944,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 71.0,
+       "active_on": 0.0010418424829954055,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 20.0,
+       "active_on": 0.0007329827826224943,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 23.0,
+       "active_on": 0.0007296648129314264,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 21.0,
+       "active_on": 0.000734136859036779,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "rest, cholinergic-input cells",
+      2.4
+     ],
+     [
+      "ACh synapses",
+      0.844
+     ]
+    ],
+    "phen": {
+     "explore": 0.7529411764705882
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 183.33333333333334,
+       "active_on": 0.002798875737226417,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 175.0,
+       "active_on": 0.0027923840573960673,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 180.0,
+       "active_on": 0.00279142232705083,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 91.66666666666667,
+       "active_on": 0.0011297927230673427,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 103.33333333333334,
+       "active_on": 0.001219954942933326,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 100.0,
+       "active_on": 0.0011942286561982321,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 50.0,
+       "active_on": 0.0007994864359956434,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 51.0,
+       "active_on": 0.000859642669090227,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 58.0,
+       "active_on": 0.0008704621354741452,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 13.0,
+       "active_on": 0.0006697970989404137,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 16.0,
+       "active_on": 0.0006709511753546981,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 12.0,
+       "active_on": 0.0006650365337314895,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   }
+  },
+  "caffeine": {
+   "0.5": {
+    "levers": [
+     [
+      "rest, PAM cells",
+      0.6
+     ]
+    ],
+    "phen": {
+     "explore": 0.1685393258426966,
+     "rest": -0.2247191011235955
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 216.66666666666669,
+       "active_on": 0.003015024632318468,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 213.33333333333334,
+       "active_on": 0.0030852309475207793,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 218.33333333333334,
+       "active_on": 0.0030585429304404482,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 121.66666666666667,
+       "active_on": 0.0012516920443261515,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 131.66666666666669,
+       "active_on": 0.0013115597583171642,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 126.66666666666667,
+       "active_on": 0.0012976146683112257,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 95.0,
+       "active_on": 0.0011008446396757045,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 95.0,
+       "active_on": 0.0011174344881310454,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 86.0,
+       "active_on": 0.0010988250059507066,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 18.0,
+       "active_on": 0.0007212977589278632,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 19.0,
+       "active_on": 0.0007114881094064441,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 22.0,
+       "active_on": 0.0007521693030099756,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "rest, PAM cells",
+      1.5
+     ]
+    ],
+    "phen": {
+     "explore": 0.36585365853658536,
+     "rest": -0.4878048780487805
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 221.66666666666669,
+       "active_on": 0.003065275042857108,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 220.0,
+       "active_on": 0.0030715262901011495,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 210.0,
+       "active_on": 0.003031374048187499,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 126.66666666666667,
+       "active_on": 0.0013149258145254944,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 118.33333333333334,
+       "active_on": 0.0012872760670999263,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 130.0,
+       "active_on": 0.001310598027971927,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 94.0,
+       "active_on": 0.0010829564552542934,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 96.0,
+       "active_on": 0.0011082018768167688,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 84.0,
+       "active_on": 0.0010624715989007423,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 14.0,
+       "active_on": 0.0007319729657599953,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 14.0,
+       "active_on": 0.0007107668116475162,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 20.0,
+       "active_on": 0.0007168257128225105,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "rest, PAM cells",
+      2.4
+     ]
+    ],
+    "phen": {
+     "explore": 0.5172413793103448,
+     "rest": -0.6896551724137931
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 216.66666666666669,
+       "active_on": 0.0030520512506100974,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 213.33333333333334,
+       "active_on": 0.0030823457564850684,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 208.33333333333334,
+       "active_on": 0.0030275271268065504,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 120.0,
+       "active_on": 0.0012783800614064825,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 136.66666666666669,
+       "active_on": 0.0013283900393588142,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 118.33333333333334,
+       "active_on": 0.0012199549429333255,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 94.0,
+       "active_on": 0.0011410930546238793,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 91.0,
+       "active_on": 0.0011131067015774782,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 94.0,
+       "active_on": 0.0010686747596275218,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 16.0,
+       "active_on": 0.0007143733004421556,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 18.0,
+       "active_on": 0.000731107408449282,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 17.0,
+       "active_on": 0.0007296648129314264,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   }
+  },
+  "cocaine": {
+   "0.5": {
+    "levers": [
+     [
+      "DA synapses",
+      1.3
+     ],
+     [
+      "OA synapses",
+      1.2
+     ]
+    ],
+    "phen": {
+     "explore": 0.45,
+     "circling": 0.2,
+     "ataxia": 0.062277580071174364
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 215.0,
+       "active_on": 0.003071045424928531,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 210.0,
+       "active_on": 0.0030977334420088623,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 213.33333333333334,
+       "active_on": 0.0030619089866487778,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 130.0,
+       "active_on": 0.001281746117614813,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 125.0,
+       "active_on": 0.001262751943296379,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 128.33333333333334,
+       "active_on": 0.0013194940336653709,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 89.0,
+       "active_on": 0.0011164246712685464,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 84.0,
+       "active_on": 0.0011432569479006627,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 98.0,
+       "active_on": 0.0011187328240971155,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 18.0,
+       "active_on": 0.0007325500039671376,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 20.0,
+       "active_on": 0.0007127864453725142,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 19.0,
+       "active_on": 0.0007388974242457028,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "DA synapses",
+      1.75
+     ],
+     [
+      "OA synapses",
+      1.5
+     ]
+    ],
+    "phen": {
+     "explore": 0.7200000000000001,
+     "circling": 0.5,
+     "ataxia": 0.19662921348314602
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 216.66666666666669,
+       "active_on": 0.0031128806949463476,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 216.66666666666669,
+       "active_on": 0.0031337983299552555,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 213.33333333333334,
+       "active_on": 0.0031898191225653194,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 131.66666666666669,
+       "active_on": 0.0013132427864213294,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 128.33333333333334,
+       "active_on": 0.0013305539326355983,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 131.66666666666669,
+       "active_on": 0.001301461589692174,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 89.0,
+       "active_on": 0.0010815138597364377,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 86.0,
+       "active_on": 0.0010970938913292799,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 90.0,
+       "active_on": 0.0011275326567560355,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 17.0,
+       "active_on": 0.0007384646455903462,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 23.0,
+       "active_on": 0.0007078816206118046,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 19.0,
+       "active_on": 0.0007073045824046624,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "DA synapses",
+      2.2
+     ],
+     [
+      "OA synapses",
+      1.8
+     ]
+    ],
+    "phen": {
+     "explore": 0.8470588235294118,
+     "circling": 0.8,
+     "ataxia": 0.4268292682926829
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 221.66666666666669,
+       "active_on": 0.0033549963093597998,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 215.0,
+       "active_on": 0.0033473024665979026,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 215.0,
+       "active_on": 0.0032653149546664354,
+       "active_post_end": 7.862145572313708e-05,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 131.66666666666669,
+       "active_on": 0.0013077128369362158,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 130.0,
+       "active_on": 0.0012899208255493283,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 130.0,
+       "active_on": 0.001323821820218938,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 82.0,
+       "active_on": 0.0011258015421346085,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 95.0,
+       "active_on": 0.001158692719941719,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 87.0,
+       "active_on": 0.001151046963697084,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 16.0,
+       "active_on": 0.0007132192240278709,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 20.0,
+       "active_on": 0.0007416383557296288,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 21.0,
+       "active_on": 0.0007097569947850171,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   }
+  },
+  "picrotoxin": {
+   "0.5": {
+    "levers": [
+     [
+      "GABA synapses",
+      0.868
+     ]
+    ],
+    "phen": {},
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 225.0,
+       "active_on": 0.0032660362524253644,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 221.66666666666669,
+       "active_on": 0.0032761344210503543,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 225.0,
+       "active_on": 0.0032814239379491583,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 135.0,
+       "active_on": 0.0013483459440224853,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 135.0,
+       "active_on": 0.0013634931969599704,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 140.0,
+       "active_on": 0.0013860938600730433,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 107.0,
+       "active_on": 0.001181629988675625,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 108.0,
+       "active_on": 0.0011959116843023969,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 114.0,
+       "active_on": 0.0012113474563434532,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 21.0,
+       "active_on": 0.0007572183873224706,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 23.0,
+       "active_on": 0.0007774147245724508,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 18.0,
+       "active_on": 0.0007449563254206969,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "GABA synapses",
+      0.56
+     ]
+    ],
+    "phen": {},
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 245.0,
+       "active_on": 0.0040772557986329,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 245.0,
+       "active_on": 0.004057540326555539,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 250.0,
+       "active_on": 0.004150347304870923,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 161.66666666666669,
+       "active_on": 0.0017065904976233243,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 158.33333333333334,
+       "active_on": 0.0016681212838138377,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 158.33333333333334,
+       "active_on": 0.0016301329351769702,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 186.0,
+       "active_on": 0.0016784598850251374,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 182.0,
+       "active_on": 0.0016060415900287796,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 184.0,
+       "active_on": 0.0016278247823484013,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 28.0,
+       "active_on": 0.0009016221986598289,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 33.0,
+       "active_on": 0.0009062385043169672,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 33.0,
+       "active_on": 0.0008965731143473338,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "GABA synapses",
+      0.252
+     ]
+    ],
+    "phen": {},
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 266.6666666666667,
+       "active_on": 0.05422548248809258,
+       "active_post_end": 0.09098305671564279,
+       "persists": true
+      },
+      {
+       "out_hz": 266.6666666666667,
+       "active_on": 0.04510082540506881,
+       "active_post_end": 0.09142160575307093,
+       "persists": true
+      },
+      {
+       "out_hz": 271.6666666666667,
+       "active_on": 0.012646513607282221,
+       "active_post_end": 0.09061086707203601,
+       "persists": true
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 186.66666666666669,
+       "active_on": 0.040616757670400586,
+       "active_post_end": 0.09109630046379445,
+       "persists": true
+      },
+      {
+       "out_hz": 193.33333333333334,
+       "active_on": 0.01507344013348817,
+       "active_post_end": 0.09114246352036584,
+       "persists": true
+      },
+      {
+       "out_hz": 191.66666666666669,
+       "active_on": 0.006800635703758201,
+       "active_post_end": 0.09113020145846407,
+       "persists": true
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 252.0,
+       "active_on": 0.002512135834793961,
+       "active_post_end": 0.0002322578783747719,
+       "persists": false
+      },
+      {
+       "out_hz": 252.0,
+       "active_on": 0.0024922280166475522,
+       "active_post_end": 0.00023153658061584402,
+       "persists": false
+      },
+      {
+       "out_hz": 240.0,
+       "active_on": 0.002410865629440489,
+       "active_post_end": 0.0002300939850979883,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 47.0,
+       "active_on": 0.0012694840557130388,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 48.0,
+       "active_on": 0.0013258895404611977,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 37.0,
+       "active_on": 0.0031500515727897636,
+       "active_post_end": 0.09085682960783041,
+       "persists": true
+      }
+     ]
+    }
+   }
+  },
+  "isoflurane": {
+   "0.5": {
+    "levers": [
+     [
+      "all synapses",
+      0.89
+     ],
+     [
+      "rest, all",
+      -0.4
+     ]
+    ],
+    "phen": {
+     "explore": -0.5067567567567568,
+     "knockdown": 0.016008811249711846
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 208.33333333333334,
+       "active_on": 0.0027368441299586216,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 210.0,
+       "active_on": 0.002751510517723488,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 205.0,
+       "active_on": 0.0027846902146341696,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 118.33333333333334,
+       "active_on": 0.0011355631051387656,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 123.33333333333334,
+       "active_on": 0.00113412050962091,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 121.66666666666667,
+       "active_on": 0.0011418143523828073,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 84.0,
+       "active_on": 0.0009301855899133721,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 90.0,
+       "active_on": 0.0009636538059276251,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 94.0,
+       "active_on": 0.0009301855899133722,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 5.0,
+       "active_on": 0.0006731150686314817,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 4.0,
+       "active_on": 0.0006699413584921993,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 2.0,
+       "active_on": 0.0006592661516600667,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "all synapses",
+      0.725
+     ],
+     [
+      "rest, all",
+      -1.0
+     ]
+    ],
+    "phen": {
+     "explore": -1.0067114093959733,
+     "knockdown": 0.20654329147389294
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 185.0,
+       "active_on": 0.002372348329113741,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 190.0,
+       "active_on": 0.0023889381775690824,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 190.0,
+       "active_on": 0.0023749930875631435,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 101.66666666666667,
+       "active_on": 0.0009545173676478721,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 111.66666666666667,
+       "active_on": 0.0009826479802460587,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 103.33333333333334,
+       "active_on": 0.0009679815924811921,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 34.0,
+       "active_on": 0.0004870202468280932,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 40.0,
+       "active_on": 0.000508659179595929,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 45.0,
+       "active_on": 0.000528566997742338,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005982443612547695,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005755956116244346,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005869921162154948,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "all synapses",
+      0.56
+     ],
+     [
+      "rest, all",
+      -1.6
+     ]
+    ],
+    "phen": {
+     "explore": -1.3363028953229397,
+     "knockdown": 0.8063865817272801
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 158.33333333333334,
+       "active_on": 0.002030212758795625,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 160.0,
+       "active_on": 0.0020674798096735653,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 161.66666666666669,
+       "active_on": 0.002069403270364039,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 78.33333333333334,
+       "active_on": 0.0007953509955111236,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 80.0,
+       "active_on": 0.0007934275348206493,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 78.33333333333334,
+       "active_on": 0.000802323540514093,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 0.0,
+       "active_on": 0.00030684006664791295,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0002932796687800691,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.00030352209695684476,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005282784786387668,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005233736538780574,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 0.0,
+       "active_on": 0.0005242392111887709,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   }
+  },
+  "octopamine": {
+   "0.5": {
+    "levers": [
+     [
+      "rest, OA cells",
+      0.8
+     ],
+     [
+      "OA synapses",
+      1.2
+     ]
+    ],
+    "phen": {
+     "explore": 0.1685393258426966,
+     "takeoff": 0.2
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 210.0,
+       "active_on": 0.0030780179699315003,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 210.0,
+       "active_on": 0.0031126402623600376,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 216.66666666666669,
+       "active_on": 0.0030604663911309228,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 130.0,
+       "active_on": 0.001336324314707021,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 123.33333333333334,
+       "active_on": 0.0012925655839987305,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 128.33333333333334,
+       "active_on": 0.0012504898813946051,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 88.0,
+       "active_on": 0.0010766090349757285,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 91.0,
+       "active_on": 0.0010598749269686018,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 95.0,
+       "active_on": 0.001085408867634648,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 15.0,
+       "active_on": 0.0006970621542278868,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 20.0,
+       "active_on": 0.0006969178946761013,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 16.0,
+       "active_on": 0.0007207207207207207,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "rest, OA cells",
+      2.0
+     ],
+     [
+      "OA synapses",
+      1.5
+     ]
+    ],
+    "phen": {
+     "explore": 0.36585365853658536,
+     "takeoff": 0.5
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 213.33333333333334,
+       "active_on": 0.0031907808529105567,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 218.33333333333334,
+       "active_on": 0.003198474695672453,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 208.33333333333334,
+       "active_on": 0.0032619488984581067,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 128.33333333333334,
+       "active_on": 0.0013170897078022777,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 125.0,
+       "active_on": 0.0012947294772755141,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 126.66666666666667,
+       "active_on": 0.0012483259881178217,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 91.0,
+       "active_on": 0.0011142607779917628,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 83.0,
+       "active_on": 0.001065933828143596,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 79.0,
+       "active_on": 0.0010428522998579045,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 21.0,
+       "active_on": 0.0007313959275528529,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 20.0,
+       "active_on": 0.0006983604901939569,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 15.0,
+       "active_on": 0.0007130749644760853,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "rest, OA cells",
+      3.2
+     ],
+     [
+      "OA synapses",
+      1.8
+     ]
+    ],
+    "phen": {
+     "explore": 0.5172413793103448,
+     "takeoff": 0.8
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 215.0,
+       "active_on": 0.0034764147654459906,
+       "active_post_end": 0.00028635521029436153,
+       "persists": false
+      },
+      {
+       "out_hz": 218.33333333333334,
+       "active_on": 0.0034362625235323393,
+       "active_post_end": 0.00030005986771399097,
+       "persists": false
+      },
+      {
+       "out_hz": 215.0,
+       "active_on": 0.003484829905966816,
+       "active_post_end": 0.0002524542156247521,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 130.0,
+       "active_on": 0.0014784199732158102,
+       "active_post_end": 0.00032458399151753835,
+       "persists": false
+      },
+      {
+       "out_hz": 121.66666666666667,
+       "active_on": 0.0014695239675223662,
+       "active_post_end": 0.00022937268733906044,
+       "persists": false
+      },
+      {
+       "out_hz": 133.33333333333334,
+       "active_on": 0.001468802669763438,
+       "active_post_end": 0.0002452412380354734,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 82.0,
+       "active_on": 0.0010792057069078688,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 91.0,
+       "active_on": 0.001117145969027474,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 90.0,
+       "active_on": 0.0010843990507721493,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 17.0,
+       "active_on": 0.0007080258801635904,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 15.0,
+       "active_on": 0.0007093242161296605,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 19.0,
+       "active_on": 0.0007246157286189313,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   }
+  },
+  "gaboxadol": {
+   "0.5": {
+    "levers": [
+     [
+      "GABA synapses",
+      1.12
+     ],
+     [
+      "rest, central",
+      -0.3
+     ]
+    ],
+    "phen": {
+     "rest": 0.3370786516853932,
+     "explore": -0.18000000000000002
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 205.0,
+       "active_on": 0.0029407309631488973,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 205.0,
+       "active_on": 0.002907791698824526,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 201.66666666666669,
+       "active_on": 0.0028919231481281124,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 120.0,
+       "active_on": 0.001212501532757738,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 125.0,
+       "active_on": 0.0012418343082874711,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 121.66666666666667,
+       "active_on": 0.0012100972068946451,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 78.0,
+       "active_on": 0.0009962564646311643,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 86.0,
+       "active_on": 0.0010242428176775653,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 77.0,
+       "active_on": 0.0009975548005972344,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 15.0,
+       "active_on": 0.0006819149012904016,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 17.0,
+       "active_on": 0.0006959080778136022,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 12.0,
+       "active_on": 0.000678741191151119,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "1.0": {
+    "levers": [
+     [
+      "GABA synapses",
+      1.3
+     ],
+     [
+      "rest, central",
+      -0.75
+     ]
+    ],
+    "phen": {
+     "rest": 0.7317073170731707,
+     "explore": -0.45
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 191.66666666666669,
+       "active_on": 0.002771706854973468,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 185.0,
+       "active_on": 0.0027563191694496736,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 198.33333333333334,
+       "active_on": 0.0027587234953127667,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 101.66666666666667,
+       "active_on": 0.0011011812452965373,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 103.33333333333334,
+       "active_on": 0.0011184923915108062,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 106.66666666666667,
+       "active_on": 0.0011071920599542695,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 46.0,
+       "active_on": 0.0007919849393027934,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 53.0,
+       "active_on": 0.0007980438404777876,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 43.0,
+       "active_on": 0.0007852047403688716,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 9.0,
+       "active_on": 0.0006384927762029444,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 13.0,
+       "active_on": 0.0006605644876261368,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 9.0,
+       "active_on": 0.0006569579988314974,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   },
+   "2.0": {
+    "levers": [
+     [
+      "GABA synapses",
+      1.48
+     ],
+     [
+      "rest, central",
+      -1.2
+     ]
+    ],
+    "phen": {
+     "rest": 1.0344827586206895,
+     "explore": -0.7200000000000001
+    },
+    "probes": {
+     "loom": [
+      {
+       "out_hz": 175.0,
+       "active_on": 0.0026430754212979995,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 176.66666666666669,
+       "active_on": 0.002615185241286122,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 170.0,
+       "active_on": 0.00260580837042006,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "loom_weak": [
+      {
+       "out_hz": 88.33333333333334,
+       "active_on": 0.0010588651101061028,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 85.0,
+       "active_on": 0.0010511712673442059,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 96.66666666666667,
+       "active_on": 0.0010292919019900604,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "sugar": [
+      {
+       "out_hz": 15.0,
+       "active_on": 0.000650754838104718,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 14.0,
+       "active_on": 0.0006504663190011468,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 20.0,
+       "active_on": 0.0006979277115386002,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ],
+     "touch": [
+      {
+       "out_hz": 3.0,
+       "active_on": 0.0006184406985047497,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 3.0,
+       "active_on": 0.0006092080871904731,
+       "active_post_end": 0.0,
+       "persists": false
+      },
+      {
+       "out_hz": 3.0,
+       "active_on": 0.0006056015983958337,
+       "active_post_end": 0.0,
+       "persists": false
+      }
+     ]
+    }
+   }
+  }
+ }
+}

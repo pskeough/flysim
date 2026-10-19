@@ -1,0 +1,138 @@
+/* ================================================================ world tool palette (toolbar.js)
+   Two tiers: a labelled category rail at the left of the 3D view, and a flyout with that category's items.
+   It lives inside #worldView, so it follows the view's edges wherever the layout puts them.
+   Tooltips are one element on <body> (position: fixed), so no panel or overflow can cover or clip them. */
+
+/* the old two-column icon rail stays in the DOM (app.js still reads #tools, #sizes and #wStrength) but is not shown */
+#rail { display: none !important; }
+
+/* z 14: above the status HUD (11), the brain column (11) and the object inspectors (13), so an open flyout is never covered */
+#tbx { position: absolute; top: 12px; left: 12px; z-index: 14; display: flex; align-items: flex-start; gap: 8px;
+  max-height: calc(100% - 200px); pointer-events: none; font-family: var(--sans); }
+#tbx > * { pointer-events: auto; }
+body.clean #tbx, body.present #tbx { display: none !important; }
+
+/* ---------------------------------------------------------------- tier 1: the rail */
+.tbx-rail { display: flex; flex-direction: column; width: 172px; max-height: 100%; padding: 6px; border-radius: 12px;
+  background: rgba(10,13,17,.86); border: 1px solid rgba(255,255,255,.09); backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35); overflow: hidden; transition: width .14s ease; }
+.tbx-head { display: flex; align-items: center; gap: 6px; padding: 2px 2px 6px 6px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,.07); flex: none; }
+.tbx-title { flex: 1; font-size: 10.5px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
+.tbx-col { width: 26px; height: 24px; border-radius: 7px; border: 1px solid transparent; background: transparent; color: var(--dim);
+  display: grid; place-items: center; padding: 0; cursor: pointer; flex: none; }
+.tbx-col:hover { background: rgba(255,255,255,.08); color: var(--text); }
+.tbx-col svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .14s; }
+.tbx-scroll { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; overflow-x: hidden; min-height: 0; scrollbar-width: thin; }
+
+.tbx-cat { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; min-height: 38px; padding: 4px 8px; border-radius: 9px;
+  border: 1px solid transparent; background: transparent; color: var(--dim); text-align: left; cursor: pointer; flex: none; }
+.tbx-cat:hover { background: rgba(255,255,255,.07); color: var(--text); }
+.tbx-cat.cur { background: rgba(108,184,255,.13); border-color: rgba(108,184,255,.42); color: #fff; }
+.tbx-cat.open { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.16); }
+.tbx-cat.open::before { content: ""; position: absolute; right: -7px; top: 50%; width: 3px; height: 18px; margin-top: -9px; border-radius: 2px; background: var(--accent); }
+.tbx-ic { width: 22px; height: 22px; flex: none; display: grid; place-items: center; }
+.tbx-ic svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tbx-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.tbx-txt b { font-size: 12.5px; font-weight: 600; color: inherit; white-space: nowrap; }
+.tbx-txt small { font-size: 10.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 112px; }
+.tbx-cat.cur .tbx-txt small { color: #9fcfff; }
+.tbx-cat .tbx-k { margin-left: auto; font: 9.5px var(--mono); color: var(--faint); }
+
+.tbx-sep { height: 1px; background: rgba(255,255,255,.08); margin: 5px 2px; flex: none; }
+.tbx-lab { font-size: 9.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 2px 4px 3px; white-space: nowrap; }
+
+/* size of the next thing: only shown while a tool that has one is chosen */
+.tbx-size { flex: none; }
+.tbx-size[hidden] { display: none; }
+.tbx-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; border-radius: 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06); }
+.tbx-seg button { height: 24px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--dim); font: 600 11px var(--mono); padding: 0; cursor: pointer; }
+.tbx-seg button:hover { background: rgba(255,255,255,.08); color: var(--text); }
+.tbx-seg button.on { background: rgba(108,184,255,.18); border-color: rgba(108,184,255,.5); color: #fff; }
+
+/* bottom row: undo, redo, view toggles, remove, empty (the original buttons, moved here with their ids and handlers) */
+.tbx-bottom { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; flex: none; }
+.tbx-bottom .rb { width: 100%; height: 30px; border-radius: 8px; }
+.tbx-bottom .rb svg.i { width: 16px; height: 16px; }
+.tbx-bottom .rb::after { display: none !important; }          /* the old CSS tooltip; the shared one replaces it */
+.tbx-bottom .rb.tbx-del.on { background: rgba(255,93,108,.16); border-color: rgba(255,93,108,.55); color: #fff; }
+.tbx-bottom .rb.tbx-del svg { stroke: var(--bad); }
+
+/* collapsed: a slim icon rail (labels go to the tooltips) */
+#tbx.collapsed .tbx-rail { width: 62px; padding: 5px; }
+#tbx.collapsed .tbx-title, #tbx.collapsed .tbx-txt, #tbx.collapsed .tbx-lab, #tbx.collapsed .tbx-cat .tbx-k { display: none; }
+#tbx.collapsed .tbx-head { padding: 2px 0 5px; justify-content: center; }
+#tbx.collapsed .tbx-col svg { transform: rotate(180deg); }
+#tbx.collapsed .tbx-cat { justify-content: center; padding: 4px 0; min-height: 36px; }
+#tbx.collapsed .tbx-seg button { height: 22px; font-size: 10px; }
+#tbx.collapsed .tbx-bottom { grid-template-columns: 1fr 1fr; }
+#tbx.collapsed .tbx-bottom .rb { height: 28px; }
+
+#tbx button:focus { outline: none; }
+#tbx button:focus-visible { outline: 2px solid rgba(108,184,255,.7); outline-offset: 1px; }
+
+/* ---------------------------------------------------------------- tier 2: the flyout */
+.tbx-fly { width: 300px; max-height: 100%; display: flex; flex-direction: column; padding: 8px; border-radius: 12px;
+  background: rgba(12,16,21,.95); border: 1px solid rgba(255,255,255,.11); backdrop-filter: blur(12px); box-shadow: 0 12px 34px rgba(0,0,0,.5); }
+.tbx-fly[hidden] { display: none; }
+.tbx-fh { display: flex; align-items: baseline; gap: 8px; padding: 2px 4px 7px; border-bottom: 1px solid rgba(255,255,255,.07); margin-bottom: 5px; flex: none; }
+.tbx-fh b { font-size: 13.5px; font-weight: 650; color: #fff; }
+.tbx-fh span { font-size: 11px; color: var(--faint); flex: 1; }
+.tbx-fh button { width: 22px; height: 22px; border-radius: 6px; border: 0; background: transparent; color: var(--dim); font-size: 15px; line-height: 1; padding: 0; cursor: pointer; }
+.tbx-fh button:hover { background: rgba(255,255,255,.08); color: #fff; }
+.tbx-list { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; min-height: 0; scrollbar-width: thin; }
+
+.tbx-item { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 4px 10px; width: 100%; padding: 7px 8px; border-radius: 9px;
+  border: 1px solid transparent; background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.tbx-item:hover { background: rgba(255,255,255,.07); }
+.tbx-item.on { background: rgba(108,184,255,.14); border-color: rgba(108,184,255,.5); }
+.tbx-item:disabled { opacity: .38; cursor: default; }
+.tbx-item:disabled:hover { background: transparent; }
+.tbx-item .tbx-sw { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.05); display: grid; place-items: center; }
+.tbx-item .tbx-sw .sw { transform-origin: center; }
+.tbx-item .tbx-sw svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; color: var(--dim); }
+.tbx-item .tbx-nm { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.tbx-item .tbx-nm b { font-size: 13px; font-weight: 600; color: #fff; }
+.tbx-item .tbx-nm span { font-size: 11.5px; color: var(--dim); }
+.tbx-item kbd { align-self: start; margin-top: 2px; min-width: 18px; text-align: center; font-size: 10.5px; color: var(--text); }
+.tbx-item .tbx-on { align-self: start; margin-top: 2px; font: 600 9.5px var(--mono); letter-spacing: .06em; color: var(--good); }
+
+/* settings for the chosen item, at the foot of the flyout */
+.tbx-set { flex: none; margin-top: 6px; padding: 8px 6px 2px; border-top: 1px solid rgba(255,255,255,.07); display: flex; flex-direction: column; gap: 6px; }
+.tbx-set[hidden] { display: none; }
+.tbx-set .row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--dim); }
+.tbx-set .row > span:first-child { width: 42px; color: var(--faint); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }
+.tbx-set .tbx-seg { flex: 1; }
+.tbx-set .note { font-size: 11px; color: var(--faint); line-height: 1.45; margin: 0; }
+
+/* drugs: the drug picker and the dosing buttons */
+.tbx-drugs { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 2px 6px; }
+.tbx-drug { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 99px; border: 1px solid var(--line2);
+  background: var(--raise); color: var(--text); font-size: 11.5px; cursor: pointer; }
+.tbx-drug i { width: 8px; height: 8px; border-radius: 50%; background: var(--dc); }
+.tbx-drug:hover { border-color: #3a4655; }
+.tbx-drug.on { border-color: var(--dc); box-shadow: 0 0 0 1px var(--dc) inset; }
+.tbx-dwhat { font-size: 11.5px; color: var(--dim); padding: 0 4px 6px; line-height: 1.45; }
+.tbx-sub { font-size: 9.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 4px 6px 2px; }
+
+/* ---------------------------------------------------------------- the shared tooltip */
+#tbxTip { position: fixed; z-index: 2000; max-width: 280px; padding: 6px 10px; border-radius: 8px; pointer-events: none;
+  background: #0b0f14; border: 1px solid #344050; color: var(--text); font: 12px/1.45 var(--sans); box-shadow: 0 6px 20px rgba(0,0,0,.55);
+  opacity: 0; transform: translateX(-3px); transition: opacity .1s, transform .1s; }
+#tbxTip.on { opacity: 1; transform: none; }
+#tbxTip b { color: #fff; font-weight: 600; }
+#tbxTip kbd { margin-left: 6px; color: var(--text); }
+#tbxTip .d { display: block; color: var(--dim); margin-top: 1px; }
+
+/* small screens (1366x768 and below): tighter rail and flyout */
+@media (max-height: 820px), (max-width: 1440px) {
+  .tbx-rail { width: 160px; }
+  .tbx-txt small { max-width: 102px; }
+  .tbx-cat { min-height: 34px; padding: 3px 7px; gap: 8px; }
+  .tbx-ic svg { width: 17px; height: 17px; }
+  .tbx-fly { width: 272px; }
+  .tbx-item { padding: 5px 7px; }
+  .tbx-item .tbx-sw { width: 26px; height: 26px; }
+  .tbx-item { grid-template-columns: 26px 1fr auto; }
+  .tbx-bottom .rb { height: 27px; }
+  #tbx { max-height: calc(100% - 170px); }
+}

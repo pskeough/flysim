@@ -1,0 +1,207 @@
+/* right_panel.css: the side panel's tabs (Mind as a chat, Signals, Drugs as cards, Settings). Loaded after the inline
+   styles in index.html, so these rules win on equal specificity. Logic: right_panel.js. 2026-10-15. */
+
+#panel { container-type: inline-size; container-name: panel; }
+
+/* ------------------------------------------------------------------ tab bar: six tabs, Settings at the right */
+#panel .tabs { gap: 0; padding: 0 4px 0 8px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+#panel .tabs::-webkit-scrollbar { display: none; }
+#panel .tabs .tab-b { padding: 0 9px; flex: none; }
+#panel .tabs .tab-b[data-tab=settings] { display: inline-flex; align-items: center; gap: 5px; }
+#panel .tabs .tab-b[data-tab=settings] svg { width: 14px; height: 14px; }
+#panel .tabs .tab-b[data-tab=settings].on { border-bottom-color: var(--dim); }
+#panel .tabs .ibtn { flex: none; }
+.rp-help { margin: 0 0 10px; font-size: 11.5px; color: var(--faint); line-height: 1.55; }
+.rp-help b { color: var(--dim); font-weight: 600; }
+.rp-sub { font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); font-weight: 600; margin: 18px 16px 8px;
+  display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rp-sub .tag { letter-spacing: .03em; text-transform: none; font-weight: 500; font-size: 10.5px; padding: 1px 8px; border-radius: 99px; background: #151b22; color: var(--dim); }
+
+/* ------------------------------------------------------------------ Mind: compact status strip */
+#tabMind .now { padding: 12px 16px 12px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #10151c, var(--panel)); }
+#ctlBtn { display: none !important; }              /* the settings live in their own tab now */
+#tabMind .nowhead { font-size: 11.5px; gap: 7px; }
+#tabMind .nowrow { gap: 2px 12px; margin: 5px 0 0; align-items: baseline; }
+#tabMind .nowrow #feelWord { font-size: 27px; line-height: 1.15; }
+#tabMind .nowrow #feelWord.none { font-size: 23px; }
+#tabMind #intent { font-size: 13.5px; line-height: 1.4; flex: 1 1 180px; min-width: 0; }
+#tabMind #feelWhy { font-size: 11px; color: #5f6a77; margin-top: 3px; -webkit-line-clamp: 1; }
+#drives { display: none !important; }              /* drawn by app.js, shown as #rpDrives (full names) */
+.rp-drives { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; margin-top: 10px; }
+.rp-drives.off { opacity: .4; }
+.rp-dv { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.rp-dv .b { height: 18px; border-radius: 4px; background: rgba(255,255,255,.06); position: relative; overflow: hidden; }
+.rp-dv .b i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 4px; transition: height .3s; }
+.rp-dv span { font-size: 9.5px; color: var(--faint); text-align: center; white-space: nowrap; overflow: hidden; }
+.rp-dv.hi span { color: var(--text); }
+#tabMind #throttleTxt { font-size: 10.5px; margin-top: 5px; color: #5f6a77; }
+.rp-ctl { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 11px; align-items: center; }
+.rp-ctl-g { display: inline-flex; align-items: center; gap: 7px; }
+.rp-ctl .cname { width: auto; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.rp-ctl .seg button { padding: 2px 9px; font-size: 11.5px; }
+#tabMind #mindState { margin-top: 8px; font-size: 10.5px; }
+#tabMind #wake { margin-top: 10px; }
+
+/* ------------------------------------------------------------------ Mind: the chat */
+#tabMind .journal { border-top: 0; }
+#tabMind .jhead { padding: 8px 14px 4px; }
+#sfilters .rp-dbgbtn { margin-left: 6px; }
+#stream { padding: 4px 16px 14px; }
+#stream .card { margin: 12px 0 10px; padding: 1px 0 2px 12px; border-left: 2px solid rgba(199,146,255,.45); }
+#stream .card .meta { font-size: 10px; color: #6c6582; gap: 8px; }
+#stream .card .meta .fl { font-size: 12.5px; }
+#stream .card .th { font: 16.5px/1.52 var(--serif); color: #f4efff; margin: 3px 0 1px; }
+/* the debug lines under a thought: small and dim, hidden unless "details" is on or the card is clicked open */
+#stream .card .why, #stream .card .sub, #stream .card .mem { font: 10px/1.45 var(--mono); opacity: .55; margin-top: 2px; white-space: normal; }
+#stream .card .sub { color: #a58fca; } #stream .card .mem { color: #6fb7ad; } #stream .card .why { color: #7a7390; }
+#stream:not(.rp-dbg) .card:not(.rp-open) .why, #stream:not(.rp-dbg) .card:not(.rp-open) .sub,
+#stream:not(.rp-dbg) .card:not(.rp-open) .mem { display: none; }
+#stream:not(.rp-dbg) .card:not(.live):has(.why, .sub, .mem) { cursor: pointer; }
+#stream:not(.rp-dbg) .card:not(.live):not(.rp-open):has(.why, .sub, .mem) .meta::after { content: "···"; color: #4d4760; letter-spacing: .1em; }
+#stream .card.live .why { display: none; }
+/* bubbles: you on the right, the fly on the left */
+#stream .bubrow { margin: 7px 0; }
+#stream .bub { max-width: min(84%, 520px); padding: 8px 12px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; }
+#stream .bub.you { background: #1b3150; color: #eaf2fb; border-bottom-right-radius: 4px; }
+#stream .bub.you.order { background: #3a2a12; color: #ffe2b8; }
+#stream .bub.fsay { background: #261b37; border: 1px solid rgba(199,146,255,.22); color: #ffe6f6; font: 14.5px/1.45 var(--sans); border-bottom-left-radius: 4px; }
+#stream .bub.fsay::before { font-size: 9px; color: #b58ce8; margin-bottom: 3px; }
+#stream .bub .ts { font: 9.5px var(--mono); color: rgba(255,255,255,.3); margin-left: 8px; white-space: nowrap; }
+#stream .sep { margin: 12px 0; font-size: 11px; }
+#jumpEnd { bottom: 8px; }
+/* the composer: chips, the box, voice */
+#talkComposer { padding: 9px 12px 10px; background: #0b0f14; }
+#talkComposer .chips { margin-bottom: 8px; gap: 6px; }
+#talkComposer .chip { padding: 3px 11px; font-size: 11.5px; background: rgba(255,255,255,.02); }
+#talkComposer .cbox { border-radius: 14px; padding: 5px 5px 5px 7px; gap: 8px; }
+#talkComposer #talkIn { font-size: 13.5px; padding: 4px 0; }
+#talkComposer #talkSend { width: 32px; height: 32px; border-radius: 10px; }
+#talkComposer #orderBar { margin: 0 0 8px; }
+#voiceBar { margin: 8px 0 0; gap: 6px; }
+#voiceBar .chip { padding: 2px 10px; font-size: 11px; }
+#talkWake { margin-top: 8px; }
+
+/* ------------------------------------------------------------------ Settings */
+#tabSettings { overflow-y: auto; }
+.rp-set { padding: 4px 0 24px; }
+.rp-group { margin: 12px 14px 0; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 12px; background: #0a0e13; }
+.rp-group h4 { margin: 0 0 4px; font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--text); font-weight: 600; }
+#tabSettings .mindgrid { grid-template-columns: 88px minmax(0, 1fr); gap: 8px 10px; margin-top: 0; }
+#tabSettings .mindgrid label { font-size: 12px; color: var(--dim); }
+#tabSettings select, #tabSettings .fld { padding: 5px 8px; font: 12.5px var(--sans); }
+#tabSettings .fld { font: 12px var(--mono); }
+#tabSettings .cbox.gl textarea { font-size: 13px; }
+.rp-stats { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 4px 10px; align-items: baseline; font-size: 11.5px; margin-top: 4px; }
+.rp-stats > span:nth-child(odd) { font-weight: 600; font-size: 11.5px; }
+#tabSettings .cstat { margin: 0; white-space: normal; }
+#tabSettings #driving { margin-top: 6px; }
+#tabSettings .trow { margin-top: 4px; font-size: 12.5px; color: var(--text); }
+#tabSettings #embodyLevers { flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+#tabSettings #embodyLevers label { margin: 0; font-size: 12px; color: var(--dim); }
+.rp-levhelp { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 3px 10px; font-size: 11px; color: var(--faint); margin-top: 10px; line-height: 1.45; }
+.rp-levhelp b { color: var(--dim); font-weight: 500; }
+.rp-levhelp b.lv-L2 { color: var(--L2); } .rp-levhelp b.lv-L1 { color: var(--L1); }
+#tabSettings details summary { font-size: 11.5px; margin-top: 10px; }
+#tabSettings .llmobs { background: #070a0d; border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-top: 6px; }
+
+/* ------------------------------------------------------------------ Signals (data-tab "pain", id tabPain) */
+.rp-sig-head { padding: 14px 16px 2px; }
+.rp-sig-head h3 { margin: 0 0 6px; font: 600 15px var(--sans); color: #fff; }
+.rp-state { display: flex; align-items: center; gap: 9px; margin: 4px 0 10px; padding: 8px 11px; border-radius: 10px; background: #0a0e12;
+  border: 1px solid var(--line); font-size: 12px; color: var(--dim); line-height: 1.4; }
+.rp-state i { width: 8px; height: 8px; border-radius: 50%; background: #3a434e; flex: none; }
+.rp-state.on i { background: var(--good); }
+.rp-state.live { border-color: rgba(199,146,255,.45); color: var(--text); }
+.rp-state.live i { background: var(--L2); box-shadow: 0 0 8px var(--L2); animation: pulse .9s infinite; }
+.rp-sig { margin: 0 16px; }
+.rp-srow { display: grid; grid-template-columns: 76px minmax(0, 1fr) 40px 74px; gap: 1px 10px; align-items: center; padding: 7px 0 6px;
+  border-bottom: 1px solid rgba(255,255,255,.045); }
+.rp-srow.hd { padding: 0 0 4px; font-size: 10px; color: var(--faint); letter-spacing: .06em; border-bottom-color: var(--line); }
+.rp-srow.hd span:nth-child(n+3) { text-align: right; }
+.rp-srow .nm { font-weight: 600; font-size: 12.5px; color: var(--sc, var(--text)); }
+.rp-srow .bar2 { height: 8px; border-radius: 5px; background: rgba(255,255,255,.07); overflow: hidden; position: relative; }
+.rp-srow .bar2 b { position: absolute; top: 0; bottom: 0; left: 0; background: var(--sc, var(--accent)); border-radius: 5px; transition: width .25s; }
+.rp-srow .v { font: 500 11.5px var(--mono); text-align: right; color: var(--text); }
+.rp-srow .ds { font: 11px var(--mono); color: var(--faint); text-align: right; white-space: nowrap; }
+.rp-srow .ds.on { color: var(--L2); font-weight: 600; }
+.rp-srow .why { grid-column: 1 / -1; font-size: 10.5px; color: var(--faint); line-height: 1.4; }
+.rp-srow.zero .nm, .rp-srow.zero .v { opacity: .55; }
+.rp-sig-foot { margin: 8px 16px 0; font-size: 10.5px; color: var(--faint); line-height: 1.5; }
+#tabPain .rp-pain { margin: 0 16px; padding: 12px 0 0; }
+#tabPain .pplain { margin: 0 0 8px; font-size: 14px; }
+#tabPain .pbig { margin: 0 0 6px; }
+#tabPain #pChart { width: 100%; margin: 6px 0 2px; }
+#tabPain .rp-pctl { margin: 0 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #0a0e13; }
+#tabPain .rp-pctl .lab { font-size: 11.5px; font-weight: 600; color: var(--text); margin: 12px 0 5px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+#tabPain .rp-pctl .lab:first-child { margin-top: 0; }
+#tabPain .rp-pctl .lab .tag { font-weight: 500; font-size: 10px; padding: 1px 7px; border-radius: 99px; }
+#tabPain .rp-pctl .prow { margin: 0 0 4px; }
+#tabPain .rp-pctl .small { margin-top: 4px; }
+#tabPain .rp-pctl .pline { margin: 4px 0 0; }
+#tabPain .pdet { margin: 12px 0 0; }
+#tabPain .pdet > summary { margin: 0 16px; }
+
+/* ------------------------------------------------------------------ Drugs: one card per drug */
+#dGrid, #dCard { display: none !important; }       /* app.js's selector + action card, driven from the cards */
+#tabDrugs .dhead { padding: 14px 16px 2px; }
+#tabDrugs .dhead .crow { margin-top: 0; }
+#tabDrugs .dhead .cname { font-size: 15px; width: auto; }
+#tabDrugs #dWho { margin: 0; font: 12px var(--sans); color: var(--faint); }
+.rp-aware { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 2px 0 4px; font-size: 11.5px; color: var(--dim); }
+.rp-aware .small { flex-basis: 100%; margin-top: 0; }
+.rp-drugs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 10px 14px 4px; align-items: start; }
+.rp-dc { --dc: #fff; position: relative; overflow: hidden; border: 1px solid var(--line2); border-radius: 12px; background: #0a0e13; padding: 10px 12px 11px; cursor: pointer; }
+.rp-dc:hover { border-color: #3a4655; }
+.rp-dc.sel { border-color: var(--dc); box-shadow: 0 0 0 1px var(--dc) inset; }
+.rp-dc .top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.rp-dc .top i { width: 9px; height: 9px; border-radius: 50%; background: var(--dc); flex: none; }
+.rp-dc .top b { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.rp-dc .st { margin-left: auto; font-size: 11.5px; color: var(--faint); white-space: nowrap; }
+.rp-dc .st.on { font-weight: 600; }
+.rp-dc .st.on { color: var(--text); }
+.rp-dc .st .vp { color: var(--dc); margin-right: 6px; }
+.rp-dc .ds { font-size: 12px; color: var(--dim); margin: 4px 0 9px; line-height: 1.45; }
+.rp-dc .lvl { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--dc); transition: width .4s; }
+.rp-dc .act { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.rp-dc:not(.sel) .act { display: none; }            /* only the chosen drug shows its actions */
+.rp-dc:not(.sel) .ds { margin-bottom: 0; }
+.rp-dc:not(.sel) { padding-bottom: 9px; }
+.rp-dc .act button.a { background: var(--raise); border: 1px solid var(--line2); border-radius: 8px; padding: 4px 11px; font-size: 12px; color: var(--text); }
+.rp-dc .act button.a:hover { background: var(--hover); border-color: #3a4655; }
+.rp-dc .act button.a.on { border-color: var(--dc); background: #1d1626; color: #fff; }
+.rp-dc .act .dose { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--faint); }
+.rp-dc .act .seg button { padding: 1px 7px; font: 500 11px var(--mono); }
+#tabDrugs .rp-sub { margin-top: 18px; }
+#tabDrugs #dChart { margin-top: 0; }
+
+/* ------------------------------------------------------------------ Memory + Lab: same spacing as the rest */
+#tabMem .mhead, #tabLab .sec .sh { padding-left: 16px; padding-right: 16px; }
+
+/* ------------------------------------------------------------------ wide panel */
+@container panel (min-width: 560px) {
+  #stream { padding: 4px 26px 16px; }
+  #tabMind .jhead { padding-left: 22px; padding-right: 22px; }
+  #stream .card .th { font-size: 17.5px; }
+  #stream .bub { font-size: 14px; }
+  #tabMind .now { padding: 14px 22px 12px; }
+  .rp-drives { gap: 7px; }
+  .rp-dv .b { height: 20px; }
+  .rp-dv span { font-size: 10.5px; }
+  #talkComposer { padding: 10px 20px 12px; }
+  .rp-drugs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rp-srow { grid-template-columns: 96px minmax(0, 1fr) 46px 84px; }
+}
+/* short windows (1366x768 and the like): a tighter strip, so the chat keeps most of the height */
+@media (max-height: 820px) {
+  #tabMind .now { padding: 9px 16px 9px; }
+  #tabMind .nowrow #feelWord { font-size: 23px; }
+  #tabMind #feelWhy { display: none; }
+  .rp-drives { margin-top: 7px; }
+  .rp-dv .b { height: 14px; }
+  .rp-ctl { margin-top: 8px; gap: 6px 14px; }
+  #talkComposer .chips { margin-bottom: 6px; }
+}
+@container panel (max-width: 360px) {
+  .rp-dv span { font-size: 8.5px; }
+  .rp-srow { grid-template-columns: 64px minmax(0, 1fr) 36px 62px; gap: 1px 7px; }
+}

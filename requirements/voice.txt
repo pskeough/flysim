@@ -1,0 +1,8 @@
+# The optional voice server (voice/fly_voice_server.py): Kokoro-82M text-to-speech and faster-whisper
+# speech-to-text, both on the CPU. install.bat --voice first installs torch==2.11.0 from the PyTorch CPU index
+# (https://download.pytorch.org/whl/cpu), then this file with -c requirements\voice-constraints.txt.
+kokoro==0.9.4
+misaki[en]==0.9.4
+faster-whisper==1.2.1
+numpy==2.5.1
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85

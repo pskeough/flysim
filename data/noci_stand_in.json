@@ -1,0 +1,126 @@
+{
+ "what": "Stand-in nociceptive ascending set: the 20 ascending neurons with the highest linear path weight onto PPL1 (1-3 hops, signed, input-normalised), skipping AN_IPS_GNG_7 (ignites). Chosen by experiments/pain_probe.py on 2026-10-03. NOT the md-neuron ascending targets of Jones et al. 2025 (those are not matched to FlyWire IDs). Call it a stand-in everywhere.",
+ "source": "results/pain_probe.json meta.an_top20",
+ "neurons": [
+  {
+   "id": 720575940626768442,
+   "type": "AN_multi_105",
+   "side": "right",
+   "influence": 0.002111738206396495
+  },
+  {
+   "id": 720575940636821616,
+   "type": "AN_multi_105",
+   "side": "left",
+   "influence": 0.0015009143784032958
+  },
+  {
+   "id": 720575940614501672,
+   "type": "AN_SMP_3",
+   "side": "right",
+   "influence": 0.0005940267585046191
+  },
+  {
+   "id": 720575940619661888,
+   "type": "AN_SMP_3",
+   "side": "left",
+   "influence": 0.00036381580973098986
+  },
+  {
+   "id": 720575940603789228,
+   "type": "AN_multi_54",
+   "side": "right",
+   "influence": 0.00011373722961514515
+  },
+  {
+   "id": 720575940632879149,
+   "type": "AN_GNG_SAD_13",
+   "side": "right",
+   "influence": 9.389182169358264e-05
+  },
+  {
+   "id": 720575940615949836,
+   "type": "AN_multi_52",
+   "side": "right",
+   "influence": 8.54087989411765e-05
+  },
+  {
+   "id": 720575940602382304,
+   "type": "AN_GNG_SAD_13",
+   "side": "left",
+   "influence": 7.532896399358489e-05
+  },
+  {
+   "id": 720575940608683477,
+   "type": "AN_multi_82",
+   "side": "right",
+   "influence": 7.39623437635431e-05
+  },
+  {
+   "id": 720575940617611921,
+   "type": "AN_multi_82",
+   "side": "left",
+   "influence": 7.310515381897099e-05
+  },
+  {
+   "id": 720575940638681919,
+   "type": "AN_multi_121",
+   "side": "right",
+   "influence": 7.215223507370254e-05
+  },
+  {
+   "id": 720575940645187784,
+   "type": "AN_GNG_SAD_16",
+   "side": "right",
+   "influence": 7.213963471708917e-05
+  },
+  {
+   "id": 720575940632847661,
+   "type": "AN_multi_12",
+   "side": "right",
+   "influence": 6.369247953333637e-05
+  },
+  {
+   "id": 720575940613981330,
+   "type": "AN_multi_63",
+   "side": "right",
+   "influence": 6.014432271117598e-05
+  },
+  {
+   "id": 720575940610125688,
+   "type": "AN_AVLP_20",
+   "side": "left",
+   "influence": 5.673579728108576e-05
+  },
+  {
+   "id": 720575940626951513,
+   "type": "AN_multi_59",
+   "side": "left",
+   "influence": 5.260214526355699e-05
+  },
+  {
+   "id": 720575940616343441,
+   "type": "AN_multi_63",
+   "side": "left",
+   "influence": 5.1774926533749906e-05
+  },
+  {
+   "id": 720575940627417064,
+   "type": "AN_multi_85",
+   "side": "right",
+   "influence": 5.066074041183779e-05
+  },
+  {
+   "id": 720575940630689388,
+   "type": "AN_multi_83",
+   "side": "left",
+   "influence": 4.8236704786121517e-05
+  },
+  {
+   "id": 720575940613656557,
+   "type": "AN_multi_57",
+   "side": "left",
+   "influence": 4.683326726830312e-05
+  }
+ ]
+}

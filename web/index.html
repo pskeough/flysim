@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>flysim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/jsm/" } }
+</script>
+<style>
+:root {
+  --bg: #06080b; --panel: #0d1116; --raise: #131920; --hover: #18202a; --line: #1c242e; --line2: #28323e;
+  --text: #e8ecf1; --dim: #a3adb9; --faint: #6f7a87;
+  --accent: #6cb8ff; --warn: #ffb454; --bad: #ff5d6c; --good: #6fdc8c;
+  --L2: #c792ff; --L1: #6cb8ff; --L0: #e8a33a; --world: #6fdc8c; --feel: #ffb8dc; --M: #4fd8c4;
+  --serif: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --pw: 400px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 var(--sans); overflow: hidden; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-thumb { background: #202833; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+kbd { font: 10px var(--mono); color: var(--faint); border: 1px solid var(--line2); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ================================================================ top bar */
+#top { position: absolute; top: 0; left: 0; right: 0; height: 42px; display: flex; align-items: center; gap: 14px; padding: 0 10px 0 14px;
+  border-bottom: 1px solid var(--line); background: var(--panel); white-space: nowrap; z-index: 30; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 650; color: #fff; font-size: 14px; letter-spacing: .01em; }
+.brand svg { width: 19px; height: 19px; }
+.clock { display: flex; gap: 14px; color: var(--faint); font-size: 12px; padding-left: 14px; border-left: 1px solid var(--line); }
+.clock .kv b { color: var(--dim); font: 500 12px var(--mono); }
+.clock .kv b.slow { color: var(--warn); }
+.grow { flex: 1; }
+.ibtn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 7px; background: transparent;
+  border: 1px solid transparent; color: var(--dim); font-size: 12.5px; }
+.ibtn:hover { background: var(--hover); color: var(--text); }
+.ibtn.on { color: var(--text); background: var(--raise); border-color: var(--line2); }
+.vgroup { display: flex; gap: 2px; padding: 2px; border-radius: 9px; border: 1px solid var(--line); }
+#bRec .dotr { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); }
+#bRec.on { color: #fff; background: #35121a; border-color: #6a2230; }
+#bRec.on .dotr { animation: pulse 1s infinite; }
+#recInfo { color: var(--faint); font: 11.5px var(--mono); }
+
+/* ================================================================ app: stage + side panel */
+#app { position: absolute; top: 42px; bottom: 0; left: 0; right: 0; display: flex; }
+#stage { position: relative; flex: 1; min-width: 0; overflow: hidden; background: #000; }
+.view { position: absolute; overflow: hidden; }
+.view canvas { display: block; width: 100%; height: 100%; }
+.view.main { inset: 0; }
+.view.pip { top: 12px; right: 12px; width: clamp(220px, 27%, 400px); aspect-ratio: 4 / 3; z-index: 12; border-radius: 12px;
+  border: 1px solid var(--line2); box-shadow: 0 10px 30px rgba(0,0,0,.55); }
+body.nopip .view.pip { display: none; }
+.pipbar { display: none; position: absolute; top: 0; left: 0; right: 0; z-index: 3; align-items: center; gap: 2px; padding: 5px 6px 12px 10px;
+  background: linear-gradient(rgba(0,0,0,.6), transparent); font-size: 11px; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
+.view.pip .pipbar { display: flex; }
+.pipbar span { flex: 1; }
+.pipbar button { width: 24px; height: 22px; border: 0; border-radius: 5px; background: transparent; color: var(--dim); display: grid; place-items: center; padding: 0; }
+.pipbar button:hover { background: rgba(255,255,255,.1); color: #fff; }
+.pipbar svg.i { width: 14px; height: 14px; }
+.view.pip .onlymain { display: none !important; }
+
+/* brain */
+#legend { position: absolute; top: 14px; left: 14px; font-size: 14px; color: #c9d1d9; pointer-events: auto; line-height: 1.6; }
+#legend div { display: flex; align-items: center; gap: 8px; }
+#legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.lbl { position: absolute; font: 12px var(--sans); color: #fff; padding: 1px 5px; border-radius: 3px;
+  background: rgba(0,0,0,.5); pointer-events: none; left: 0; top: 0; will-change: transform; white-space: nowrap; }
+/* plain-English brain read-out (raw neuron names only in tooltips) */
+#brainRead { position: absolute; left: 14px; top: 150px; z-index: 2; width: 330px; padding: 10px 12px; border-radius: 10px;
+  background: rgba(6,9,13,.72); border: 1px solid rgba(255,255,255,.08); color: #dfe5eb; font-size: 14px; }
+#brainRead .big { font-size: 17px; margin-bottom: 8px; } #brainRead .big b { color: #fff; font-weight: 650; }
+#brainRead .br { display: grid; grid-template-columns: 118px 1fr 52px; gap: 8px; align-items: center; margin-top: 5px; }
+#brainRead .br i { height: 9px; border-radius: 5px; background: rgba(255,255,255,.1); overflow: hidden; display: block; }
+#brainRead .br i b { display: block; height: 100%; width: 0; border-radius: 5px; transition: width .25s; }
+#brainRead .br em { font: 12px var(--mono); color: #aab4bf; font-style: normal; text-align: right; }
+.view.pip #brainRead { display: none; }
+.view.pip .lbl { display: none; }
+.vhint { position: absolute; bottom: 12px; left: 14px; font-size: 11px; color: var(--faint); pointer-events: none; }
+
+/* top bar: the fly's body (hunger, thirst, temperature, what it senses) */
+#bodyStrip { display: flex; align-items: center; gap: 14px; padding-left: 14px; border-left: 1px solid var(--line); min-width: 0; overflow: hidden; }
+.bm { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); }
+.bm .meter { width: 58px; }
+.bm b { font: 500 11px var(--mono); color: var(--dim); min-width: 28px; }
+#nTemp { font-size: 11.5px; color: var(--faint); } #nTemp b { color: var(--text); font-weight: 500; }
+#nTemp.hot b { color: #ff9a6a; } #nTemp.cold b { color: #a8dcff; }
+#senseChips { display: flex; gap: 10px; min-width: 0; overflow: hidden; }
+/* world picker */
+#worldBtn { color: var(--text); border-color: var(--line2); }
+#worldBtn .wt { font-weight: 600; }
+#worldPop { position: absolute; top: 46px; right: 110px; z-index: 40; width: 620px; max-width: calc(100vw - 24px); max-height: calc(100vh - 70px); overflow-y: auto;
+  background: #0c1015f2; border: 1px solid var(--line2); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,.6); padding: 14px; display: none; backdrop-filter: blur(12px); }
+#worldPop.on { display: block; }
+#worldPop h4 { margin: 2px 2px 10px; font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); }
+.wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 10px; }
+.wcard { border: 1px solid var(--line2); border-radius: 11px; background: var(--raise); padding: 0 0 8px; text-align: left; overflow: hidden; color: var(--text); }
+.wcard:hover { border-color: var(--accent); }
+.wcard.cur { border-color: var(--L2); box-shadow: 0 0 0 1px var(--L2) inset; }
+.wcard canvas { display: block; width: 100%; aspect-ratio: 1; background: #1b1814; }
+.wcard b { display: block; font-size: 12.5px; margin: 7px 9px 1px; }
+.wcard span { display: block; font-size: 10.5px; color: var(--faint); margin: 0 9px; line-height: 1.35; }
+.wrow { display: flex; gap: 6px; margin-top: 12px; align-items: center; }
+.wrow input { flex: 1; background: #090c10; color: var(--text); border: 1px solid var(--line2); border-radius: 7px; padding: 5px 8px; font: 12px var(--sans); min-width: 0; }
+.pbtn { background: var(--raise); border: 1px solid var(--line2); border-radius: 7px; padding: 5px 11px; font-size: 12px; color: var(--text); }
+.pbtn:hover { background: var(--hover); border-color: #3a4655; }
+.pbtn:disabled { opacity: .35; cursor: default; }
+
+/* world: tool rail (two columns) */
+#rail { position: absolute; top: 12px; left: 12px; z-index: 10; display: flex; flex-direction: column; gap: 2px; padding: 5px;
+  border-radius: 12px; background: rgba(10,13,17,.72); border: 1px solid rgba(255,255,255,.07); backdrop-filter: blur(10px);
+  max-height: calc(100% - 24px); overflow-y: auto; }
+#tools, #sizes, #railBtns { display: grid; grid-template-columns: 36px 36px; gap: 2px; }
+.rlab { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 3px 3px 1px; }
+.rb { position: relative; width: 36px; height: 34px; border-radius: 8px; border: 1px solid transparent; background: transparent;
+  display: grid; place-items: center; color: var(--dim); padding: 0; }
+.rb:disabled { opacity: .3; cursor: default; }
+.rb:hover { background: rgba(255,255,255,.07); color: var(--text); }
+.rb.on { background: rgba(108,184,255,.16); border-color: rgba(108,184,255,.5); color: #fff; }
+.rb .key { position: absolute; right: 2px; bottom: 0; font: 8.5px var(--mono); color: var(--faint); }
+.rb::after { content: attr(data-tip); position: absolute; left: 44px; top: 50%; transform: translateY(-50%); white-space: nowrap; pointer-events: none;
+  background: #0c1015; border: 1px solid var(--line2); color: var(--text); font-size: 12px; padding: 3px 8px; border-radius: 6px; opacity: 0; transition: opacity .12s; }
+.rb:hover::after { opacity: 1; }
+.rsep { height: 1px; background: rgba(255,255,255,.08); margin: 4px 3px; }
+.sw { width: 15px; height: 15px; border-radius: 50%; display: inline-block; font-style: normal; font-size: 13px; line-height: 15px; text-align: center; }
+.sw-move { color: #cfd6de; } .sw-delete { color: var(--bad); }
+.sw-sugar { background: radial-gradient(circle at 35% 35%, #fff2c8, #e8b94e); }
+.sw-water { background: radial-gradient(circle at 35% 35%, #dff1ff, #3f93e0); }
+.sw-bitter { background: radial-gradient(circle at 35% 35%, #d7b5ef, #6d3592); box-shadow: 0 0 0 1px #6fdc8c88; }
+.sw-heat { background: radial-gradient(circle at 50% 70%, #fff4c0, #ff8a1e 45%, #d8330a); box-shadow: 0 0 8px #ff6a0088; }
+.sw-cold { background: linear-gradient(135deg, #f2fbff, #8fcfff); border-radius: 3px; transform: rotate(45deg) scale(.8); }
+.sw-block { background: linear-gradient(135deg, #b5ab9c, #6f675c); border-radius: 3px; transform: scale(.9); }
+.sw-wall { width: 17px; height: 7px; border-radius: 2px; background: linear-gradient(#d9cdb8, #8f8370); }
+.sw-rock { width: 16px; height: 12px; border-radius: 50% 45% 40% 50%; background: radial-gradient(circle at 35% 30%, #b8b2a8, #5d5a55); }
+.sw-pillar { width: 7px; height: 17px; border-radius: 3px; background: linear-gradient(90deg, #5f7a3c, #a9c46a, #5f7a3c); }
+.sw-log { width: 17px; height: 7px; border-radius: 4px; background: linear-gradient(#8a5d36, #5a3a20); transform: rotate(-25deg); }
+.sw-fly, .sw-puff { color: #cfd6de; font-size: 14px; }
+#sizes button { height: 22px; font: 600 10px var(--mono); }
+#sizes { grid-template-columns: repeat(3, 24px); }
+#sizes .rb { width: 24px; }
+#wStrength { display: none; }
+.meter { height: 4px; background: rgba(255,255,255,.14); border-radius: 99px; overflow: hidden; }
+.meter > span { display: block; height: 100%; width: 0; border-radius: 99px; transition: width .4s; }
+#nHunger { background: #ffb454; } #nThirst { background: #6cb8ff; }
+.sc { font-size: 11.5px; color: #c9d1d9; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.sc::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+.sc.taste { color: #ffd98a; } .sc.bad { color: #d8a6ff; } .sc.touch { color: #f0c37d; } .sc.hot { color: #ff9a6a; }
+.sc.cold { color: #a8dcff; } .sc.moist { color: #7fc4ff; } .sc.loom { color: #ff8da1; }
+.sc.none { color: #6f7883; font-style: italic; } .sc.none::before { display: none; }
+
+/* world: subtitle (cinema mode: shown when the journal is not on screen) */
+#thought { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); width: min(62%, 700px); z-index: 8;
+  text-align: center; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+/* the subtitle shows in every layout now (2026-10-08): it was hidden while the Mind tab was open */
+#thoughtFeel { font: italic 13px var(--serif); color: var(--feel); letter-spacing: .03em; text-shadow: 0 1px 3px #000; }
+#thoughtFeel:empty { display: none; }
+#thoughtTxt { font: italic 400 20px/1.45 var(--serif); color: #f6f1ff; text-shadow: 0 1px 2px #000, 0 0 18px rgba(0,0,0,.9), 0 0 4px #000; }
+#thoughtTxt:empty { display: none; }
+#thoughtSub { font: 11px var(--mono); color: #9aa4ae; text-shadow: 0 1px 2px #000; }
+#toolHint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 70%; text-align: center; font-size: 11.5px;
+  color: #7c8692; pointer-events: none; text-shadow: 0 1px 2px #000; z-index: 8; }
+#panelOpen { position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 14; display: none; writing-mode: vertical-rl;
+  padding: 12px 6px; border-radius: 8px 0 0 8px; border: 1px solid var(--line2); border-right: 0; background: var(--panel); color: var(--dim); font-size: 12px; letter-spacing: .08em; }
+#panelOpen:hover { color: #fff; }
+body.nopanel #panelOpen { display: block; }
+
+/* ================================================================ side panel */
+#grip { width: 7px; margin: 0 -3px; flex: none; cursor: col-resize; z-index: 20; position: relative; }
+#grip::after { content: ""; position: absolute; top: 0; bottom: 0; left: 3px; width: 1px; background: var(--line); transition: background .15s; }
+#grip:hover::after, #grip.drag::after { background: var(--accent); }
+#panel { width: var(--pw); flex: none; display: flex; flex-direction: column; background: var(--panel); min-width: 0; }
+body.nopanel #panel, body.nopanel #grip { display: none; }
+.tabs { display: flex; align-items: center; gap: 2px; padding: 0 8px 0 10px; height: 40px; border-bottom: 1px solid var(--line); flex: none; }
+.tabs .tab-b { height: 40px; padding: 0 10px; border: 0; background: transparent; color: var(--faint); font-size: 12.5px; font-weight: 600;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs .tab-b:hover { color: var(--dim); }
+.tabs .tab-b.on { color: #fff; border-bottom-color: var(--L2); }
+.tabs .tab-b[data-tab=lab].on { border-bottom-color: #858f9b; }
+.tabs .tab-b[data-tab=talk].on { border-bottom-color: var(--accent); }
+.tabs .tab-b[data-tab=mem].on { border-bottom-color: var(--M); }
+.tabs .tab-b .badge { display: inline-block; min-width: 7px; height: 7px; border-radius: 9px; background: var(--feel); margin-left: 5px; vertical-align: 1px; }
+.tab { display: none; flex: 1; min-height: 0; flex-direction: column; }
+.tab.on { display: flex; }
+
+/* --- mind tab: now */
+.now { padding: 14px 16px 12px; flex: none; }
+.nowhead { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dim); }
+#mModel { margin-left: auto; font: 10.5px var(--mono); color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #3a434e; flex: none; }
+.dot.idle { background: var(--L2); box-shadow: 0 0 0 3px rgba(199,146,255,.16); }
+.dot.think { background: var(--L2); animation: pulse .9s infinite; box-shadow: 0 0 10px var(--L2); }
+.dot.err { background: var(--bad); }
+#feelWord { font: italic 34px/1.1 var(--serif); color: #fff; margin: 8px 0 4px; text-transform: lowercase; }
+#feelWord.none { color: var(--faint); font-size: 26px; }
+#intent { font-size: 14px; color: #e7eaef; }
+#intent::before { content: "intends  "; font: 10.5px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--faint); white-space: pre; }
+#intent.none { color: var(--faint); font-style: italic; }
+#drives { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; margin-top: 8px; }
+#drives .dv { display: flex; flex-direction: column; align-items: center; font-size: 9.5px; color: var(--faint); }
+#drives .dv .b { width: 100%; height: 26px; background: rgba(255,255,255,.07); border-radius: 3px; position: relative; overflow: hidden; }
+#drives .dv .b i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 3px; }
+#drives.off { opacity: .4; }
+#throttleTxt { font-size: 11px; color: var(--faint); margin-top: 4px; }
+#embodyLevers label { margin-right: 8px; font-size: 11.5px; }
+#feelWhy { font-size: 11.5px; color: var(--faint); margin-top: 5px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+#wake { display: none; margin-top: 12px; padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(199,146,255,.5); background: rgba(199,146,255,.1);
+  color: var(--L2); font-size: 12.5px; font-weight: 600; }
+#wake:hover { background: rgba(199,146,255,.2); }
+body.mind-off #wake { display: inline-block; }
+body.mind-off #intent::before { content: "the fly follows  "; }
+
+/* collapsible sections (mind + lab) */
+.sec { border-top: 1px solid var(--line); flex: none; }
+.sh { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; border: 0; background: transparent; text-align: left;
+  font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+.sh:hover { color: var(--text); }
+.sh .sum { letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--faint); font: 11px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.sec:not(.closed) .sh .sum { visibility: hidden; }
+.sh .chev { width: 12px; height: 12px; margin-left: auto; transition: transform .15s; }
+.sec.closed .sh .chev { transform: rotate(-90deg); }
+.sb { padding: 0 16px 12px; }
+.sec.closed .sb { display: none; }
+
+/* control */
+.crow { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.cname { width: 50px; font-weight: 600; font-size: 12.5px; }
+.cstat { font: 11px/1.45 var(--mono); color: var(--dim); margin: 2px 0 4px 60px; overflow: hidden; text-overflow: ellipsis; }
+.cstat .i { color: var(--good); } .cstat .e { color: var(--bad); } .cstat .w { color: var(--text); }
+.crow .cstat { margin: 0; }
+.seg { display: inline-flex; background: #090c10; border: 1px solid var(--line2); border-radius: 8px; padding: 2px; gap: 1px; }
+.seg button { border: 0; background: transparent; padding: 2px 9px; font-size: 11.5px; border-radius: 6px; color: var(--faint); }
+.seg button:hover { color: var(--text); }
+.seg button.on { background: var(--raise); color: #fff; box-shadow: inset 0 0 0 1px var(--line2); }
+.seg.L2 button.on { color: var(--L2); } .seg.L1 button.on { color: var(--L1); }
+#driving { font: 11px var(--mono); color: var(--faint); margin-top: 8px; }
+#mindState:empty { display: none; }
+#mindState { font: 11px var(--mono); color: var(--bad); margin-top: 6px; }
+.mindgrid { display: grid; grid-template-columns: 50px 1fr; gap: 6px 10px; align-items: center; font-size: 12px; margin-top: 10px; }
+.mindgrid label { color: var(--faint); }
+.fld, .tab select { background: #090c10; color: var(--text); border: 1px solid var(--line2); border-radius: 7px; padding: 4px 7px; font: 11.5px var(--mono); min-width: 0; width: 100%; }
+.small { font-size: 11px; color: var(--faint); margin-top: 8px; line-height: 1.5; }
+.llmobs { font: 10.5px var(--mono); color: var(--dim); white-space: pre-wrap; margin: 4px 0 0; max-height: 220px; overflow-y: auto; }
+details summary { cursor: pointer; color: var(--dim); font-size: 11px; margin-top: 8px; }
+
+/* journal */
+.journal { flex: 1; min-height: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.jhead { display: flex; align-items: center; gap: 8px; padding: 9px 16px 5px; font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+#sfilters { margin-left: auto; display: flex; gap: 2px; }
+#sfilters button { padding: 1px 7px; font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 500; border-radius: 5px; background: transparent;
+  border: 0; opacity: .35; }
+#sfilters button.on { opacity: 1; }
+#sfilters button:hover { background: var(--hover); }
+#stream { flex: 1; min-height: 0; overflow-y: auto; padding: 0 16px 14px; font: 11px/1.55 var(--mono); color: #7d8793; }
+#stream .e { margin: 0; }
+#stream .t { color: #46505b; margin-right: 6px; }
+#stream .lv { font-weight: 600; margin-right: 6px; }
+#stream .e-L0 { color: #7a838e; }
+#stream .rep { color: var(--faint); margin-left: 6px; }
+#stream .e-L1 .acts { color: #8fb9e0; }
+#stream .card { margin: 12px 0 10px; padding: 0 0 0 12px; border-left: 2px solid rgba(199,146,255,.55); color: #8c83a0; }
+#stream .card .th { font: italic 15.5px/1.5 var(--serif); color: #f1eafe; display: block; margin: 3px 0 2px; }
+#stream .card .why { display: block; color: #6a6379; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#stream .card.live { border-left-style: dashed; }
+#stream .sub { color: #b69bdb; margin-top: 2px; }
+#stream.hide-L2 .e-L2, #stream.hide-L1 .e-L1, #stream.hide-L0 .e-L0, #stream.hide-world .e-world { display: none; }
+.lv-L0 { color: var(--L0); } .lv-L1 { color: var(--L1); } .lv-L2 { color: var(--L2); } .lv-world { color: var(--world); } .lv-user { color: #8b95a1; }
+.feel { color: var(--feel); margin-left: 6px; font-style: italic; font-family: var(--serif); font-size: 12.5px; }
+#thoughtTxt.live::after, #stream .card.live .th::after { content: "▍"; font-style: normal; color: var(--L2); margin-left: 2px; animation: blink 1s steps(2) infinite; }
+
+/* composer */
+#composer { flex: none; padding: 10px 12px 12px; border-top: 1px solid var(--line); background: var(--panel); }
+#composer label { display: block; font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 0 4px 6px; }
+.cbox { display: flex; align-items: flex-end; gap: 6px; background: #090c10; border: 1px solid var(--line2); border-radius: 12px; padding: 6px 6px 6px 12px; }
+.cbox:focus-within { border-color: rgba(199,146,255,.6); box-shadow: 0 0 0 3px rgba(199,146,255,.1); }
+#cogGoal { flex: 1; resize: none; border: 0; outline: none; background: transparent; font: 13px/1.45 var(--sans); color: var(--text); max-height: 110px; padding: 3px 0; }
+#goalSet { width: 30px; height: 30px; border-radius: 8px; border: 0; background: var(--L2); color: #1a0f26; display: grid; place-items: center; padding: 0; flex: none; }
+#goalSet:hover { filter: brightness(1.1); }
+
+/* journal: memory level, folded body strips, speech */
+.lv-M { color: var(--M); }
+#stream .e-M { color: #6fb7ad; }
+#stream.hide-M .e-M, #stream.hide-L0 .strip, #stream.hide-talk .e-talk { display: none; }
+#stream .strip { margin: 4px 0; padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,.025); cursor: pointer; color: #6b7480; }
+#stream .strip:hover { background: rgba(255,255,255,.05); }
+#stream .strip .cnt { color: #4d5661; margin-right: 6px; }
+#stream .strip .last { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: calc(100% - 70px); vertical-align: bottom; }
+#stream .strip .all { display: none; margin-top: 3px; padding-top: 3px; border-top: 1px dashed #222a33; }
+#stream .strip.open .all { display: block; } #stream .strip.open > .head .last { display: none; }
+#stream .e-talk { margin: 8px 0; color: #aeb7c2; font: 12.5px/1.45 var(--sans); }
+#stream .e-talk .who { font: 600 10.5px var(--mono); letter-spacing: .06em; color: #8b95a1; margin-right: 6px; text-transform: uppercase; }
+#stream .e-talk.order .who { color: var(--warn); }
+#stream .card .say { display: block; margin-top: 4px; font: 13.5px/1.45 var(--sans); color: #ffd6f0; }
+#stream .card .say::before { content: "says  "; font: 600 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #a7799a; white-space: pre; }
+#stream .card .mem { display: block; margin-top: 3px; color: #6fb7ad; }
+#thoughtSay { font: 500 16px/1.4 var(--sans); color: #ffd6f0; text-shadow: 0 1px 2px #000, 0 0 12px rgba(0,0,0,.9); }
+#thoughtSay:empty { display: none; } #thoughtSay::before { content: "“"; } #thoughtSay::after { content: "”"; }
+
+/* inspector: the selected thing */
+#insp { position: absolute; z-index: 13; display: none; transform: translate(-50%, calc(-100% - 18px)); background: #0c1015ee; border: 1px solid var(--line2);
+  border-radius: 10px; padding: 5px; gap: 2px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.5); white-space: nowrap; }
+#insp.on { display: flex; }
+#oinsp { position: absolute; z-index: 13; display: none; flex-direction: column; gap: 4px; transform: translate(-50%, calc(-100% - 14px)); background: #0c1015ee;
+  border: 1px solid var(--line2); border-radius: 9px; padding: 6px 8px 7px; min-width: 240px; box-shadow: 0 6px 20px #0008; }
+#oinsp.on { display: flex; }
+#oinsp .top { display: flex; align-items: center; gap: 6px; }
+#oinsp .nm { font-size: 11.5px; font-weight: 600; color: var(--text); }
+#oinsp .mind { font-size: 10px; color: var(--faint); flex: 1; }
+#oinsp button { height: 22px; border-radius: 6px; border: 0; background: transparent; color: var(--dim); padding: 0 6px; font-size: 11px; }
+#oinsp button:hover { background: var(--hover); color: #fff; }
+#oinsp button.del:hover { color: var(--bad); }
+#oinsp .st { font-size: 11px; color: var(--dim); }
+#oinsp .vb { display: grid; grid-template-columns: auto 1fr auto 1fr auto 1fr; gap: 3px 5px; align-items: center; font-size: 9.5px; color: var(--faint); }
+#oinsp .vb i { height: 4px; background: #ffffff14; border-radius: 2px; overflow: hidden; }
+#oinsp .vb b { display: block; height: 100%; background: var(--accent); }
+#oinsp .mt { font: 9.5px var(--mono); color: var(--faint); }
+#insp .nm { font-size: 11.5px; font-weight: 600; padding: 0 8px 0 6px; color: var(--text); }
+#insp button { width: 28px; height: 26px; border-radius: 6px; border: 0; background: transparent; color: var(--dim); padding: 0; font-size: 14px; }
+#insp button:hover { background: var(--hover); color: #fff; }
+#insp button.del:hover { color: var(--bad); }
+#insp .v { font: 10.5px var(--mono); color: var(--faint); min-width: 34px; text-align: center; }
+
+/* --- talk tab */
+#talkList { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 14px 6px; display: flex; flex-direction: column; gap: 8px; }
+.bub { max-width: 84%; padding: 7px 11px; border-radius: 13px; font-size: 13px; line-height: 1.45; }
+.bub.you { align-self: flex-end; background: #1d2a3a; color: #e4ecf5; border-bottom-right-radius: 4px; }
+.bub.you.order { background: #3a2a12; color: #ffe2b8; }
+.bub.you.order::before { content: "ORDER"; display: block; font: 600 9.5px var(--mono); letter-spacing: .1em; color: var(--warn); margin-bottom: 2px; }
+.bub.fly { align-self: flex-start; background: #221a30; color: #f3e8ff; border-bottom-left-radius: 4px; font: italic 14.5px/1.45 var(--serif); }
+.bub.note { align-self: center; background: transparent; color: var(--faint); font-size: 11px; text-align: center; padding: 0 10px; }
+.bub .ts { display: block; font: 9.5px var(--mono); color: #5d6773; margin-top: 2px; font-style: normal; }
+.bub.thinking { color: #a894c4; font-style: italic; }
+#talkEmpty { color: var(--faint); font-size: 12px; text-align: center; margin: auto 20px; line-height: 1.6; }
+#orderBar { display: none; margin: 0 12px 8px; padding: 7px 10px; border-radius: 9px; background: #2a1f10; border: 1px solid #5a4020; font-size: 12px; color: #ffd9a8; align-items: center; gap: 8px; }
+#orderBar.on { display: flex; }
+#orderBar .ob { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#orderBar .obar { width: 50px; height: 3px; background: #4a3518; border-radius: 9px; overflow: hidden; } #orderBar .obar span { display: block; height: 100%; background: var(--warn); }
+#talkComposer { flex: none; padding: 8px 12px 12px; border-top: 1px solid var(--line); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.chip { border: 1px solid var(--line2); background: transparent; color: var(--dim); border-radius: 99px; padding: 2px 10px; font-size: 11.5px; }
+.chip:hover { color: #fff; border-color: #3a4655; }
+.chip.o { color: #d9b37a; }
+.trow { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 11.5px; color: var(--faint); }
+.trow label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+#talkMode button.on[data-v=order] { color: var(--warn); }
+#talkBox:focus-within { border-color: rgba(108,184,255,.6); box-shadow: 0 0 0 3px rgba(108,184,255,.1); }
+#talkBox.order:focus-within { border-color: rgba(255,180,84,.6); box-shadow: 0 0 0 3px rgba(255,180,84,.1); }
+#talkIn { flex: 1; resize: none; border: 0; outline: none; background: transparent; font: 13px/1.45 var(--sans); color: var(--text); max-height: 90px; padding: 3px 0; }
+#talkSend { width: 30px; height: 30px; border-radius: 8px; border: 0; background: var(--accent); color: #07121e; display: grid; place-items: center; padding: 0; flex: none; }
+#talkBox.order #talkSend { background: var(--warn); }
+#talkWake { display: none; margin: 0 12px 8px; }
+body.mind-off #talkWake { display: block; }
+
+/* --- memory tab */
+#tabMem { overflow-y: auto; }
+.mhead { padding: 12px 16px 6px; }
+.mstate { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
+#mGateState { font: 600 12px var(--mono); letter-spacing: .08em; padding: 2px 8px; border-radius: 6px; background: #151b22; color: var(--faint); }
+#mGateState.aligned { color: var(--good); background: #10251a; } #mGateState.contending { color: var(--warn); background: #2a1f10; }
+#mGateState.leads { color: var(--M); background: #0f2522; }
+#mHolder { font-size: 12.5px; color: var(--dim); } #mHolder b { color: var(--text); }
+.claims { display: grid; grid-template-columns: 90px 1fr 36px; gap: 5px 8px; align-items: center; font: 11px var(--mono); color: var(--dim); margin-top: 10px; }
+.claims .bar > span { background: var(--M); } .claims .bar.l1 > span { background: var(--L1); }
+#mAlign { font: 11px var(--mono); color: var(--faint); margin-top: 8px; }
+#mProp { font-size: 12.5px; color: #cfe9e4; margin-top: 8px; min-height: 18px; }
+#mMap { display: block; width: calc(100% - 32px); max-width: 360px; aspect-ratio: 1; margin: 6px 16px 4px; border-radius: 12px; background: #0a0e12; border: 1px solid var(--line); }
+.mlegend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 16px 8px; font-size: 10.5px; color: var(--faint); }
+.mlegend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+.blist { font: 11px/1.7 var(--mono); color: var(--dim); }
+.blist .k { display: inline-block; width: 64px; color: var(--text); }
+.blist .st-missing { color: var(--bad); } .blist .st-seen { color: var(--good); } .blist .st-remembered { color: var(--M); }
+.cbar { display: inline-block; width: 40px; height: 4px; background: #1a2029; border-radius: 9px; vertical-align: 2px; margin: 0 6px; overflow: hidden; }
+.cbar span { display: block; height: 100%; background: var(--M); }
+.eplist { font: 11px/1.6 var(--mono); color: var(--dim); }
+.eplist .pos { color: var(--good); } .eplist .neg { color: #ff8d9a; } .eplist .mind { color: var(--L2); }
+input[type=range].wslider { width: 120px; accent-color: var(--M); vertical-align: middle; }
+.seg.M button.on { color: var(--M); }
+
+/* --- lab tab */
+#tabLab { overflow-y: auto; }
+#tabLab .sb { font-size: 12px; }
+.kvs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 11.5px; color: var(--dim); }
+.kvs .kv b { color: var(--text); font: 500 11.5px var(--mono); }
+.chain { font: 11.5px/1.6 var(--mono); color: #aeb7c2; }
+.chain .src { color: var(--warn); } .chain .n { color: #ff8da1; } .chain .d { color: var(--accent); } .chain .ph { color: #7c8692; font-style: italic; }
+.bars { display: grid; grid-template-columns: 78px 1fr 1fr; gap: 5px 8px; align-items: center; font: 11px var(--mono); color: var(--dim); }
+.bar { height: 6px; background: #1a2029; border-radius: 99px; position: relative; overflow: hidden; }
+.bar > span { position: absolute; top: 0; bottom: 0; left: 0; background: #ff5d7a; border-radius: 99px; }
+.bar.drv > span { background: var(--accent); } .bar.neg > span { background: var(--L2); }
+.bars .h { color: var(--faint); font-size: 10px; }
+.btns { display: flex; flex-wrap: wrap; gap: 5px; }
+#tabLab .btns button, #tabLab .row button { background: var(--raise); border: 1px solid var(--line2); border-radius: 7px; padding: 4px 10px; font-size: 12px; color: var(--text); }
+#tabLab .btns button:hover, #tabLab .row button:hover { background: var(--hover); border-color: #3a4655; }
+#tabLab button.on { background: #1b2c3e; border-color: var(--accent); color: #fff; }
+#tabLab button.sil.on { background: #3a1f26; border-color: var(--bad); }
+.row { display: flex; gap: 5px; margin-top: 8px; }
+.row input[type=text] { flex: 1; background: #090c10; color: var(--text); border: 1px solid var(--line2); border-radius: 7px; padding: 5px 8px; font: 11.5px var(--mono); min-width: 0; }
+#events { font: 11px var(--mono); color: var(--dim); white-space: pre-wrap; max-height: 220px; overflow-y: auto; }
+#sensory { font: 11px/1.6 var(--mono); color: var(--dim); }
+.note { font-size: 11px; color: var(--faint); margin-top: 7px; }
+.llm { font: 11.5px/1.5 var(--mono); margin-top: 8px; color: var(--dim); }
+.llm .i { color: var(--good); font-weight: 600; } .llm .w { color: var(--text); } .llm .e { color: var(--bad); }
+.llm .ph { color: #7c8692; font-style: italic; } .llm .ev { color: var(--faint); font-size: 10.5px; }
+
+/* ================================================================ transport: pause, step, speed, metabolism, wait */
+#transport { display: flex; align-items: center; gap: 4px; padding-left: 12px; border-left: 1px solid var(--line); }
+.tb { display: inline-grid; place-items: center; height: 28px; min-width: 30px; padding: 0 6px; border-radius: 7px; border: 1px solid transparent;
+  background: transparent; color: var(--dim); }
+.tb:hover { background: var(--hover); color: var(--text); }
+.tb.wide { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+#tPlay.paused { color: #111; background: var(--warn); }
+#tClock { font: 500 11.5px var(--mono); color: var(--text); display: none; }
+body.daycycle #tClock { display: inline-flex; }
+#todIcon { font-size: 13px; }
+#tHold.on { color: var(--L2); border-color: rgba(199,146,255,.5); background: rgba(199,146,255,.1); }
+.seg.sp button { padding: 2px 7px; font: 500 11.5px var(--mono); }
+.seg.sp button.on { color: #fff; }
+.tsel { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--faint); margin-left: 4px; }
+.tsel select { background: #090c10; border: 1px solid var(--line2); border-radius: 7px; padding: 2px 4px; font: 11.5px var(--mono); color: var(--text); }
+body.paused #k-t { color: var(--warn); }
+
+/* ================================================================ HUD: the fly's body */
+#hud { position: absolute; left: 12px; bottom: 12px; z-index: 11; width: 250px; padding: 10px 12px 9px; border-radius: 12px;
+  background: rgba(10,13,17,.8); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(10px); font-size: 12px; }
+.hrow { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+#hState { font-weight: 700; font-size: 13px; letter-spacing: .02em; text-transform: uppercase; }
+.st-ok { color: var(--good); } .st-weak { color: var(--warn); } .st-stupor, .st-coma { color: #ff8d5c; } .st-dead { color: var(--bad); }
+#hAlive, #hLives { font: 11px var(--mono); color: var(--faint); }
+.vit { display: grid; grid-template-columns: 46px 1fr 56px; white-space: nowrap; align-items: center; gap: 8px; color: var(--dim); margin: 3px 0; }
+.vit .meter { height: 6px; }
+.vit b { font: 500 11.5px var(--mono); color: var(--text); text-align: right; }
+#vEnergy { background: #ffb454; } #vWater { background: #5fb3ff; } #vHealth { background: var(--good); }
+#vHealth.lo { background: var(--bad); }
+.tbar { position: relative; height: 6px; border-radius: 99px; background: linear-gradient(90deg, #5fb3ff, #6fdc8c 35%, #6fdc8c 62%, #ffb454 78%, #ff5d6c); opacity: .9; }
+.tbar i { position: absolute; top: -2px; width: 1px; height: 10px; background: rgba(255,255,255,.5); }
+.tbar > span { position: absolute; top: -3px; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: #fff; box-shadow: 0 0 6px #000; transition: left .4s; }
+#hud.warn { border-color: rgba(255,180,84,.45); } #hud.crit { border-color: rgba(255,93,108,.6); box-shadow: 0 0 20px rgba(255,93,108,.25); }
+#senseChips { display: flex; flex-wrap: wrap; gap: 3px 10px; margin-top: 7px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.06); min-height: 16px; }
+
+/* ================================================================ death */
+#deathCard { display: none; position: absolute; left: 50%; top: 64px; transform: translateX(-50%); z-index: 25; width: min(460px, 86%);
+  padding: 22px 24px 18px; border-radius: 16px; text-align: center; background: rgba(16,8,11,.9); border: 1px solid rgba(255,93,108,.35);
+  box-shadow: 0 20px 60px rgba(0,0,0,.7); backdrop-filter: blur(8px); }
+body.dead #deathCard { display: block; }
+#deathCard .dk { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #ff8d9a; font-weight: 700; }
+#deathCard .dc { font: italic 24px/1.3 var(--serif); color: #fff; margin: 8px 0 4px; }
+#deathCard .da { font: 11.5px var(--mono); color: var(--dim); }
+#deathCard .dl { font: italic 15px/1.5 var(--serif); color: #d9cdea; margin: 14px 0 4px; }
+#deathCard .dl:not(:empty)::before { content: "its last thought"; display: block; font: 600 9.5px var(--sans); letter-spacing: .15em; text-transform: uppercase; color: var(--faint); margin-bottom: 4px; font-style: normal; }
+#deathCard .db { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+.pbtn.pri { background: #2a1f3a; border-color: var(--L2); color: #fff; }
+body.dead #stage::after, body.limp #stage::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 9; }
+body.dead #stage::after { background: radial-gradient(ellipse at center, transparent 30%, rgba(40,0,8,.55)); }
+body.limp #stage::after { background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.45)); }
+body.dead #brainView canvas, body.limp #brainView canvas { filter: grayscale(1) brightness(.35); transition: filter 1s; }
+
+/* ================================================================ keys */
+#keyBtn { position: absolute; right: 12px; bottom: 12px; z-index: 11; width: 32px; height: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,.08);
+  background: rgba(10,13,17,.72); color: var(--dim); display: grid; place-items: center; padding: 0; }
+#keyBtn:hover, #keyBtn.on { color: #fff; }
+#keyHelp { display: none; position: absolute; right: 12px; bottom: 50px; z-index: 22; width: min(480px, calc(100% - 24px)); padding: 12px 14px;
+  border-radius: 12px; background: #0c1015f2; border: 1px solid var(--line2); box-shadow: 0 12px 40px rgba(0,0,0,.6);
+  grid-template-columns: 58px 1fr; gap: 7px 10px; font-size: 12px; color: var(--dim); line-height: 1.7; }
+#keyHelp.on { display: grid; }
+#keyHelp b { color: var(--text); font-weight: 600; }
+#keyHelp kbd { font-size: 10.5px; color: var(--text); }
+
+/* ================================================================ mind tab: now + stream + chat */
+.nowhead .ibtn.sm { height: 24px; padding: 0 6px; font-size: 11.5px; margin-left: 4px; }
+.nowhead .ibtn.sm svg { width: 12px; height: 12px; transition: transform .15s; transform: rotate(-90deg); }
+.nowhead .ibtn.sm.on svg { transform: none; }
+.nowrow { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 6px 0 2px; }
+.nowrow #feelWord { margin: 0; font-size: 28px; }
+.sec[data-sec=control] .sb { padding-top: 6px; }
+.cbox.gl { padding: 4px 4px 4px 8px; border-radius: 8px; }
+.cbox.gl textarea { flex: 1; resize: none; border: 0; outline: none; background: transparent; font: 12px/1.4 var(--sans); color: var(--text); }
+.cbox.gl button { width: 26px; height: 26px; border-radius: 6px; border: 0; background: var(--L2); color: #1a0f26; display: grid; place-items: center; padding: 0; flex: none; }
+.journal { position: relative; }
+.jhead { padding: 7px 14px 4px; }
+#sfilters { margin-left: 0; gap: 4px; }
+#sfilters button { opacity: 1; color: var(--faint); border: 1px solid var(--line2); border-radius: 99px; padding: 1px 9px; }
+#sfilters button.on { color: var(--text); background: var(--raise); }
+#stream { font: 12px/1.55 var(--sans); color: var(--dim); padding: 4px 16px 16px; }
+#streamEmpty { color: var(--faint); font-size: 12.5px; text-align: center; margin: 40px 16px; line-height: 1.7; }
+#stream .card { margin: 14px 0 12px; padding: 2px 0 2px 14px; border-left: 2px solid rgba(199,146,255,.5); color: var(--faint); }
+#stream .card .meta { display: flex; align-items: baseline; gap: 8px; font: 10.5px var(--mono); color: #7a7390; }
+#stream .card .meta .fl { font: italic 12.5px var(--serif); color: var(--feel); }
+#stream .card .th { display: block; font: 17px/1.55 var(--serif); color: #f4efff; margin: 4px 0 2px; }
+#stream .card .why { display: block; font: 10.5px var(--mono); color: #6a6379; white-space: normal; margin-top: 3px; }
+#stream .card .sub { font: 11px var(--mono); color: #a58fca; margin-top: 3px; }
+#stream .card .mem { font: 11px var(--mono); color: #6fb7ad; margin-top: 3px; }
+#stream .card.last { border-left-color: var(--bad); }
+#stream .card.last .meta::before { content: "last thought"; color: #ff8d9a; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+#stream .card.live .th { color: #d6cce8; }
+#stream.hide-th .card:not(.live) { display: none; }
+.bubrow { display: flex; margin: 8px 0; }
+.bubrow.you { justify-content: flex-end; }
+.bub.fsay { background: #2b1f3c; color: #ffe3f6; font: 14.5px/1.45 var(--sans); border-bottom-left-radius: 4px; }
+.bub.fsay::before { content: "the fly says"; display: block; font: 600 9.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #c792ff; margin-bottom: 2px; }
+.bub .ts { display: inline; margin-left: 8px; }
+#stream .sep { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 11.5px; color: var(--faint); text-align: center; }
+#stream .sep::before, #stream .sep::after { content: ""; flex: 1; height: 1px; background: var(--line2); min-width: 14px; }
+#stream .sep .tx { max-width: 82%; }
+#stream .sep .t { font: 10px var(--mono); color: #56606b; margin-right: 6px; }
+#stream .sep.M { color: #6fb7ad; } #stream .sep.world { color: #86b592; }
+#stream .sep.body { color: #ffb88a; } #stream .sep.escaped { color: var(--good); } #stream .sep.crushed { color: #ff8d9a; }
+#stream .sep.other { color: #b9a6d9; } .lv-O { color: #b9a6d9; }
+#stream .sep.death { color: #ff8d9a; font-weight: 600; font-size: 13px; }
+#stream .sep.death::before, #stream .sep.death::after { background: rgba(255,93,108,.4); }
+#stream .sep.newfly { color: var(--L2); font-weight: 600; }
+#stream.hide-ev .sep:not(.death):not(.newfly):not(.body):not(.crushed):not(.escaped) { display: none; }
+#stream.hide-log .strip { display: none; }
+#stream .strip { font: 11px/1.55 var(--mono); }
+#jumpEnd { display: none; position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); padding: 3px 12px; border-radius: 99px;
+  border: 1px solid var(--line2); background: var(--raise); color: var(--text); font-size: 11.5px; box-shadow: 0 4px 12px rgba(0,0,0,.5); }
+#jumpEnd.on { display: block; }
+#talkComposer .cbox { align-items: center; }
+#talkComposer .seg { flex: none; }
+#talkComposer .seg button { padding: 2px 7px; }
+#talkComposer .chips { margin-bottom: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 88%, transparent); }
+#talkComposer .chips::-webkit-scrollbar { display: none; }
+#talkComposer .chip { flex: none; }
+#orderBar { margin: 0 0 8px; }
+#talkWake { width: 100%; margin: 8px 0 0; }
+#rail { max-height: calc(100% - 200px); }
+
+
+/* ================================================================ drugs */
+:root { --drug: #ff8fd0; }
+.tabs .tab-b[data-tab=drugs].on { border-bottom-color: var(--drug); }
+#tabDrugs { overflow-y: auto; }
+.dhead { padding: 12px 16px 4px; }
+.dgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 8px; }
+.dchip { display: flex; align-items: center; padding: 6px 8px; border-radius: 9px; border: 1px solid var(--line2);
+  background: var(--raise); color: var(--text); font-size: 12px; font-weight: 600; text-align: left; position: relative; overflow: hidden; white-space: nowrap; }
+.dchip:hover { border-color: #3a4655; }
+.dchip.on { border-color: var(--dc); box-shadow: 0 0 0 1px var(--dc) inset; }
+.dchip i { width: 8px; height: 8px; border-radius: 50%; background: var(--dc); display: inline-block; margin-right: 6px; flex: none; }
+.dchip .lvl { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--dc); width: 0; transition: width .4s; }
+.dcard { margin: 10px 16px 6px; padding: 10px 12px; border-radius: 11px; background: #0a0e12; border: 1px solid var(--line); }
+.dcard h3 { margin: 0; font: 600 16px var(--sans); display: flex; align-items: center; gap: 8px; }
+.dcard h3 i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dcard .dw { font-size: 12px; color: var(--dim); margin-top: 4px; line-height: 1.45; }
+.dcard .df { font-size: 12px; color: #c9b8d8; margin-top: 4px; line-height: 1.45; font-style: italic; }
+.dact { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.dact button { background: var(--raise); border: 1px solid var(--line2); border-radius: 8px; padding: 5px 11px; font-size: 12.5px; color: var(--text); }
+.dact button:hover { background: var(--hover); border-color: #3a4655; }
+.dact button.on { border-color: var(--drug); color: #fff; background: #2a1830; }
+.dact button:disabled { opacity: .3; cursor: default; }
+#dChart { display: block; width: calc(100% - 32px); height: 120px; margin: 4px 16px 2px; border-radius: 10px; background: #0a0e12; border: 1px solid var(--line); }
+.dsub { font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); font-weight: 600; margin: 14px 16px 6px; display: flex; gap: 8px; align-items: baseline; }
+.dsub .tag { letter-spacing: .04em; text-transform: none; font-weight: 500; font-size: 10.5px; padding: 1px 7px; border-radius: 99px; }
+.tag.sim { background: #10251a; color: var(--good); } .tag.scr { background: #2a1f10; color: var(--warn); } .tag.pre { background: #151b22; color: var(--dim); }
+.dlev { display: grid; grid-template-columns: 1fr 70px 56px; gap: 5px 8px; align-items: center; margin: 0 16px; font-size: 12px; color: var(--dim); }
+.dlev b { font: 500 11.5px var(--mono); color: var(--text); text-align: right; }
+.dlev .bar > span { background: #ffb454; }
+.dlev .bar.dn > span { background: var(--accent); }
+.dnone { margin: 0 16px; font-size: 12px; color: var(--faint); font-style: italic; grid-column: 1 / -1; }
+.dref { display: grid; grid-template-columns: 1fr repeat(3, 58px); gap: 4px 6px; margin: 0 16px; font: 11.5px var(--mono); color: var(--dim); }
+.dref .h { color: var(--faint); font: 10px var(--sans); text-align: right; } .dref span:not(:first-child) { text-align: right; }
+.dref .up { color: #ff9a6a; } .dref .dn2 { color: var(--accent); } .dref .gone { color: var(--bad); }
+.dfoot { margin: 12px 16px 16px; font-size: 11px; color: var(--faint); line-height: 1.55; }
+#drugHud { display: flex; flex-direction: column; gap: 4px; margin-top: 7px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.06); }
+#drugHud:empty { display: none; }
+.dh { display: grid; grid-template-columns: 76px 1fr 64px; align-items: center; gap: 8px; font-size: 12px; color: var(--text); }
+.dh .meter > span { background: var(--dc); }
+.dh b { font: 500 11px var(--mono); color: var(--dim); text-align: right; }
+.dh.down { color: #ff8d9a; font-weight: 700; grid-template-columns: 1fr; letter-spacing: .04em; }
+#vapour { position: absolute; inset: 0; pointer-events: none; z-index: 7; opacity: 0; transition: opacity 1.2s, background 1s; }
+.sw-laced { background: radial-gradient(circle at 35% 35%, #fff2c8, #e8b94e); box-shadow: 0 0 0 2px var(--drug); }
+#brainDrug { position: absolute; left: 14px; top: 300px; font: 13px var(--mono); color: var(--dim); pointer-events: none; line-height: 1.6; z-index: 2; }
+.view.pip #brainDrug { top: auto; left: 8px; bottom: 6px; font-size: 9.5px; line-height: 1.4; }
+#brainDrug .bd-up { color: #ffb454; } #brainDrug .bd-dn { color: #6cb8ff; }
+body.bigui #panel, body.bigui #hud, body.bigui #top { zoom: 1.18; }
+/* ================================================================ pain (nociception.py) */
+:root { --pain: #ff5a4f; }
+.tabs .tab-b[data-tab=pain].on { border-bottom-color: var(--pain); }
+#tabPain { overflow-y: auto; }
+.pbig { margin: 10px 16px 4px; padding: 12px 14px; border-radius: 11px; background: #0a0e12; border: 1px solid var(--line); }
+.pbig .pl { display: flex; align-items: baseline; gap: 10px; }
+.pbig .pl b { font: 700 26px var(--sans); color: var(--pain); min-width: 3.5ch; }
+.pbig .pl span { font-size: 13px; color: var(--text); }
+.pbig .pw { font-size: 12.5px; color: #ffb3ad; margin-top: 3px; font-style: italic; min-height: 1.3em; }
+.pmeter { height: 10px; border-radius: 6px; background: rgba(255,255,255,.08); margin-top: 9px; position: relative; overflow: hidden; }
+.pmeter span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; }
+.pmeter .pI { background: var(--pain); } .pmeter .pL { background: rgba(255,90,79,.35); }
+#pChart { display: block; width: calc(100% - 32px); height: 110px; margin: 6px 16px 2px; border-radius: 10px; background: #0a0e12; border: 1px solid var(--line); }
+.prow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 16px 6px; font-size: 12px; color: var(--dim); }
+.prow input[type=range] { width: 120px; accent-color: var(--pain); }
+.prow button.go { background: #2b1414; border: 1px solid var(--pain); border-radius: 8px; padding: 5px 12px; color: #fff; font-size: 12.5px; }
+.prow button.go:hover { background: #3a1a1a; }
+.pline { margin: 4px 16px 0; padding: 7px 10px; border-radius: 8px; background: #0a0e12; border: 1px dashed var(--line2); font: 12px var(--mono); color: var(--text); min-height: 1.4em; }
+#demoHint { position: absolute; top: 48px; right: 70px; z-index: 30; display: none; padding: 9px 12px; border-radius: 10px; background: #1b2430; border: 1px solid var(--L2); color: var(--text); font-size: 13px; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+#demoHint.on { display: block; } #demoHint button { margin-left: 10px; background: none; border: 0; color: var(--dim); font-size: 15px; cursor: pointer; }
+body.present #demoHint { display: none !important; }
+.pplain { margin: 2px 16px 6px; font-size: 15px; color: var(--text); line-height: 1.45; }
+.pdet { margin-top: 10px; } .pdet > summary { margin: 0 16px; cursor: pointer; color: var(--dim); font-size: 12.5px; }
+#painHud:empty { display: none; }
+#painHud { margin-top: 6px; }
+.dh.pain { --dc: var(--pain); }
+#brainPain { position: absolute; right: 14px; bottom: 34px; font: 11px var(--mono); color: #ff9d96; pointer-events: none; line-height: 1.6; z-index: 2; text-align: right; }
+.view.pip #brainPain { right: 8px; bottom: 6px; font-size: 9.5px; line-height: 1.4; }
+/* clean view (Shift+M): only the world, the inset, the body HUD and the subtitle, for screen recording */
+body.clean #top, body.clean #rail, body.clean #toolHint, body.clean #keyBtn, body.clean #panelOpen, body.clean #insp,
+body.clean .pipbar, body.clean #thoughtSub { display: none !important; }
+body.clean #app { top: 0; }
+body.clean #hud { font-size: 13.5px; width: 280px; }
+/* presentation (Shift+P): for filming the screen. Bigger panel text (zoom 1.6: 9 px -> 14 px), brighter faint text,
+   no editing tools or Lab, the main view framed 16:9 like the recorder's 1920x1080 composite */
+body.present { --faint: #9aa5b1; --dim: #c0c8d0; }
+body.present #panel { zoom: 1.6; } body.present #hud { zoom: 1.25; } body.present #top { zoom: 1.25; }
+body.present #rail, body.present #toolHint, body.present #keyBtn, body.present #insp, body.present #thoughtSub,
+body.present .tab-b[data-tab="lab"], body.present .vhint { display: none !important; }
+body.present #stage { container-type: size; }
+body.present .view.main { inset: 0; margin: auto; width: min(100cqw, 100cqh * 16 / 9); height: min(100cqh, 100cqw * 9 / 16); }
+body.present #app { top: 53px; }
+body.present #thoughtTxt { font-size: 28px; } body.present #thoughtFeel { font-size: 17px; }
+body.present #thought { width: min(50%, 760px); bottom: 56px; }
+body.present #brainRead { zoom: 1.3; } body.present #legend { zoom: 1.2; }
+/* drug and pain banners over the live view (also drawn into the recording) */
+#banners { position: absolute; top: 12px; left: 110px; right: calc(clamp(220px, 27%, 400px) + 28px); z-index: 9; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
+#banners .bn { border-radius: 9px; box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+body.nopip #banners { right: 16px; } body.present #banners { left: 16px; }
+#banners .bn { display: flex; align-items: baseline; gap: 16px; padding: 7px 18px; font: 700 20px var(--sans); letter-spacing: .06em;
+  color: #0b0d10; text-shadow: none; }
+#banners .bn small { font: 600 16px var(--sans); letter-spacing: .02em; opacity: .85; }
+#banners .bn .st { margin-left: auto; font-size: 22px; letter-spacing: .1em; }
+#banners .pain { background: linear-gradient(90deg, rgba(255,80,70,.95), rgba(255,80,70,.75)); color: #fff; }
+#banners .pain .pb { width: 160px; height: 10px; border-radius: 5px; background: rgba(0,0,0,.3); overflow: hidden; align-self: center; }
+#banners .pain .pb b { display: block; height: 100%; background: #fff; }
+.view.pip #banners { display: none; }
+
+/* ================================================================ misc */
+#loading { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center;
+  background: radial-gradient(60% 60% at 50% 45%, #111722, var(--bg)); color: var(--dim); z-index: 50; font-size: 13px; }
+#loading .spin { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--L2); animation: spin 1s linear infinite; }
+#loading b { color: #fff; font-size: 16px; font-weight: 600; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes pulse { 50% { opacity: .35; } }
+@media (max-width: 1100px) { .clock .opt, .brand small { display: none; } .ibtn .lab { display: none; } }
+@media (max-width: 1180px) { .clock .opt { display: none; } #tHold .lab { display: none; } }
+@media (max-width: 980px) { .clock { display: none; } #worldBtn .wt { display: none; } }
+/* brain column (Brain column button, Shift+N): the connectome docked as a full-height column beside the world, with its
+   labels and plain read-outs, instead of a small inset */
+body.dock .view.pip { top: 0; left: 0; right: auto; bottom: 0; width: 25%; height: auto; aspect-ratio: auto; border-radius: 0; border: 0; border-right: 1px solid #2A2F36; }
+body.dock.dockr .view.pip { left: auto; right: 0; border-right: 0; border-left: 1px solid #2A2F36; }
+body.dock .view.main { left: 25%; right: 25%; }
+/* the mind's brain docked on the other side (drawn by app.js drawLLMBrain, the same panel as the stage's) */
+#llmDock { display: none; }
+body.dock #llmDock { display: block; position: absolute; top: 0; bottom: 0; right: 0; width: 25%; height: 100%; z-index: 11; background: #0E1013; border-left: 1px solid #2A2F36; }
+body.dock.dockr #llmDock { right: auto; left: 0; border-left: 0; border-right: 1px solid #2A2F36; }
+body.dock .view.pip #brainRead, body.dock .view.pip #legend { display: block !important; }
+body.dock .view.pip .lbl { display: block; }
+body.dock .view.pip .phide { display: none; }
+/* cinematic camera (Shift+C): the 1920x1080 frame Rec writes, fitted to the window, over everything */
+#cineCanvas { display: none; }
+body.cine #cineCanvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: contain; background: #000; z-index: 1000; }
+</style>
+<link rel="stylesheet" href="./toolbar.css">   <!-- the world tool palette (toolbar.js) -->
+<link rel="stylesheet" href="./layout.css">    <!-- left panel (fly brain + AI brain) and the world view beside it -->
+<link rel="stylesheet" href="./right_panel.css">   <!-- the side panel's tabs (right_panel.js) -->
+</head>
+<body class="journal-on">
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8"/></symbol>
+  <symbol id="i-pip" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="7" width="7" height="5" rx="1"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-max" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4"/></symbol>
+  <symbol id="i-empty" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.6 5.2 3.6 8.5s-1 6.1-3.6 8.5c-2.6-2.4-3.6-5.2-3.6-8.5s1-6.1 3.6-8.5"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3"/></symbol>
+  <symbol id="i-heat" viewBox="0 0 24 24"><path d="M12 3v11M9 17a3 3 0 1 0 6 0c0-1.2-.6-2.1-1.5-2.6V5.5a1.5 1.5 0 0 0-3 0v8.9C9.6 14.9 9 15.8 9 17z"/></symbol>
+  <symbol id="i-ghost" viewBox="0 0 24 24"><path d="M6 20V11a6 6 0 0 1 12 0v9l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5z"/><circle cx="10" cy="11" r=".6"/><circle cx="14" cy="11" r=".6"/></symbol>
+  <symbol id="i-rotl" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4"/></symbol>
+  <symbol id="i-rotr" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8M20 4v4h-4"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></symbol>
+  <symbol id="i-step" viewBox="0 0 24 24"><path d="M6 5v14l9-7zM18 5v14"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></symbol>
+  <symbol id="i-keys" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10"/></symbol>
+</svg>
+
+<div id="top">
+  <span class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#c792ff" stroke-width="1.6" stroke-linecap="round"><ellipse cx="12" cy="13" rx="3" ry="5.5"/><circle cx="12" cy="6.2" r="2"/><path d="M9.3 11 3.5 7.5M14.7 11l5.8-3.5M9.3 14 4 16.5M14.7 14 20 16.5M10.8 4.6 9.5 2.5M13.2 4.6l1.3-2.1"/></svg>
+    flysim
+  </span>
+  <div id="transport">
+    <button class="tb" id="tPlay" title="pause / run  (Space)"><svg class="i"><use href="#i-pause"/></svg></button>
+    <button class="tb" id="tStep" title="step 0.1 s of simulated time, then hold  (.)"><svg class="i"><use href="#i-step"/></svg></button>
+    <span class="seg sp" id="segSpeed"></span>
+    <label class="tsel" title="metabolism: how fast hunger, thirst and recovery run. The fly's reserves last minutes, not days, at ×1 already (a demo compression)">life
+      <select id="lifeRate"><option value="0.5">×½</option><option value="1">×1</option><option value="2">×2</option><option value="4">×4</option><option value="8">×8</option><option value="16">×16</option></select></label>
+    <label class="tsel" title="day and night: how long a whole day lasts in simulated time. The fly is most active around dawn and dusk and rests at night; in the dark it sees less far. Click the clock to jump to a time of day">day
+      <select id="dayLen"><option value="0">off</option><option value="120">2 min</option><option value="300">5 min</option><option value="600">10 min</option><option value="1800">30 min</option></select></label>
+    <button class="tb wide" id="tClock" title="time of day: click to jump to dawn, noon, dusk or midnight"><span id="todIcon">☀</span><span id="todTxt"></span></button>
+    <button class="tb wide" id="tHold" title="wait for the mind: the world holds still while the mind is thinking, so every thought answers the moment it saw"><svg class="i"><use href="#i-hourglass"/></svg><span class="lab">wait</span></button>
+  </div>
+  <div class="clock">
+    <span class="kv">t <b id="k-t">0.00 s</b></span>
+    <span class="kv" title="simulated seconds per wall-clock second: what the machine achieves at the chosen speed"><b id="k-rtf">-</b> real time</span>
+    <span class="kv opt">fly <b id="k-mode">-</b></span>
+    <span class="kv opt"><b id="k-v">-</b></span>
+  </div>
+  <span class="grow"></span>
+  <span id="recInfo"></span>
+  <button class="ibtn" id="worldBtn" title="choose a world, save this one, undo and redo edits (O)"><svg class="i"><use href="#i-globe"/></svg><span class="wt" id="worldName">Classic</span><svg class="i" style="width:12px"><use href="#i-chev"/></svg></button>
+  <div class="vgroup">
+    <button class="ibtn" id="vSwap" title="swap the brain and the world (B)"><svg class="i"><use href="#i-swap"/></svg><span class="lab" id="vSwapLab">brain</span></button>
+    <button class="ibtn" id="vPip" title="show or hide the inset view (P)"><svg class="i"><use href="#i-pip"/></svg><span class="lab">inset</span></button>
+    <button class="ibtn" id="vPanel" title="show or hide the side panel (M); hidden = cinema mode with subtitles"><svg class="i"><use href="#i-panel"/></svg><span class="lab">panel</span></button>
+  </div>
+  <button class="ibtn" id="bDemo" title="set up a demo: the Showcase world (sugar in view, water, a distant fire), the mind awake, the auto-director on, speed 1x"><span class="lab">Demo</span></button>
+  <button class="ibtn" id="bDirector" title="auto-director: every 20-40 s it puts something near the fly (sugar, water, a gentle fire, a hand that misses, a puff)"><span class="lab">Director</span></button>
+  <button class="ibtn" id="bDock" title="dock the brain as a column beside the world (Shift+N; Shift+Alt+N other side)"><span class="lab">Brain column</span></button>
+  <div id="demoHint">New here? Press <b>Demo</b> to set up the classic world with the mind awake.<button id="demoHintX" title="dismiss">&times;</button></div>
+  <button class="ibtn" id="bRec" title="record video (both views + thoughts) and the mind log to sim/recordings/"><span class="dotr"></span>Rec</button>
+</div>
+
+<div id="app">
+  <div id="stage">
+    <div class="view main" id="worldView">
+      <div class="pipbar"><span>World</span><button class="pswap" title="make this the main view (B)"><svg class="i"><use href="#i-max"/></svg></button><button class="phide" title="hide the inset (P)"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <div id="rail" class="onlymain">
+        <div id="tools"></div>
+        <div class="rlab">size</div>
+        <div id="sizes"></div>
+        <input type="range" id="wStrength" min="0.4" max="2" step="0.1" value="1">
+        <div class="rsep"></div>
+        <div id="railBtns">
+          <button class="rb" id="wUndo" data-tip="undo  (Ctrl+Z)" disabled><svg class="i"><use href="#i-undo"/></svg></button>
+          <button class="rb" id="wRedo" data-tip="redo  (Ctrl+Y)" disabled><svg class="i"><use href="#i-redo"/></svg></button>
+          <button class="rb" id="bFollow" data-tip="camera follows the fly  (F)"><svg class="i"><use href="#i-cam"/></svg></button>
+          <button class="rb" id="bFields" data-tip="show heat, cold and humidity on the floor  (V)"><svg class="i"><use href="#i-heat"/></svg></button>
+          <button class="rb" id="bGhosts" data-tip="show what the fly remembers, and how far it perceives  (G)"><svg class="i"><use href="#i-ghost"/></svg></button>
+          <button class="rb" id="wClear" data-tip="empty the arena"><svg class="i"><use href="#i-empty"/></svg></button>
+        </div>
+      </div>
+      <div id="insp" class="onlymain"><span class="nm" id="inspName"></span>
+        <button id="inspSmaller" title="smaller / weaker  (wheel down, [)">&minus;</button><span class="v" id="inspVal"></span><button id="inspBigger" title="bigger / stronger  (wheel up, ])">+</button>
+        <button id="inspRotL" title="turn left  (R)"><svg class="i"><use href="#i-rotl"/></svg></button><button id="inspRotR" title="turn right  (Shift+R)"><svg class="i"><use href="#i-rotr"/></svg></button>
+        <button class="del" id="inspDel" title="remove  (Delete)"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+      <div id="oinsp" class="onlymain"><div class="top"><span class="nm" id="oName"></span><span class="mind">own brain · no mind</span>
+          <button id="oDose" title="inject this fly with the drug chosen in the Drugs tab">dose</button><button id="oWash" title="wash the drugs out of this fly">sober</button>
+          <button id="oRevive" title="bring it back to life">revive</button><button class="del" id="oRemove" title="take it away  (Delete)"><svg class="i"><use href="#i-x"/></svg></button></div>
+        <div class="st" id="oState"></div>
+        <div class="vb"><span>energy</span><i><b id="oE"></b></i><span>water</span><i><b id="oW"></b></i><span>health</span><i><b id="oH"></b></i></div>
+        <div class="mt" id="oMeta"></div>
+      </div>
+      <div id="banners" class="onlymain"></div>
+      <div id="thought" class="onlymain"><div id="thoughtFeel"></div><div id="thoughtTxt"></div><div id="thoughtSay"></div><div id="thoughtSub"></div></div>
+      <div id="toolHint" class="onlymain"></div>
+    </div>
+    <canvas id="llmDock"></canvas>
+    <div class="view pip" id="brainView">
+      <div class="pipbar"><span>Brain</span><button class="pswap" title="make this the main view (B)"><svg class="i"><use href="#i-max"/></svg></button><button class="phide" title="hide the inset (P)"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <div id="legend" class="onlymain"></div>
+      <div id="brainDrug"></div>
+      <div id="brainPain"></div>
+      <div id="brainRead" class="onlymain">
+        <div class="big"><b>138,639</b> neurons · <b id="brN">0</b> firing now</div>
+        <div class="br" title="MN9: the proboscis motor neuron. It fires when the fly eats"><span>feeding signal</span><i><b id="brFeed" style="background:#ffd98a"></b></i><em id="brFeedV"></em></div>
+        <div class="br" title="DNp01, the giant fibre: the escape command. Above ~20 Hz the fly jumps and takes off"><span>escape signal</span><i><b id="brEsc" style="background:#ff6a7a"></b></i><em id="brEscV"></em></div>
+        <div class="br" title="DNa02, left and right: the steering command neurons"><span>turning</span><i><b id="brTurn" style="background:#6cb8ff"></b></i><em id="brTurnV"></em></div>
+      </div>
+      <div class="vhint onlymain">FlyWire v783 · 138,639 spiking neurons · drag to orbit · seen from the front: the fly's left is on screen right</div>
+    </div>
+    <button id="panelOpen" title="show the panel (M)">MIND</button>
+
+    <!-- the fly's body: reserves, temperature, health; what it senses now -->
+    <div id="hud">
+      <div class="hrow"><span id="hState" class="st-ok">alive</span><span id="hAlive"></span><span class="grow"></span><span id="hLives" title="flies so far in this session"></span></div>
+      <div class="vit" title="energy: sugar stores. At zero the fly starves; eating sugar refills it"><span>energy</span><span class="meter"><span id="vEnergy"></span></span><b id="tEnergy"></b></div>
+      <div class="vit" title="water: at zero it dehydrates; drinking refills it, humid air slows the loss"><span>water</span><span class="meter"><span id="vWater"></span></span><b id="tWater"></b></div>
+      <div class="vit" title="health: damage from starvation, thirst, heat, cold or a blow. It recovers slowly when all is well"><span>health</span><span class="meter"><span id="vHealth"></span></span><b id="tHealth"></b></div>
+      <div class="vit" title="body temperature (a fly takes the temperature around it). Heat stupor near 39-41 °C, chill coma below about 7 °C"><span>body</span><span class="tbar"><span id="vTb"></span><i style="left:17.5%"></i><i style="left:80%"></i></span><b id="tTb"></b></div>
+      <div id="senseChips"></div>
+      <div id="drugHud"></div>
+      <div id="painHud"></div>
+    </div>
+    <div id="vapour"></div>
+
+    <!-- death -->
+    <div id="deathCard">
+      <div class="dk">the fly has died</div>
+      <div class="dc" id="dCause"></div>
+      <div class="da" id="dAlive"></div>
+      <div class="dl" id="dLast"></div>
+      <div class="db"><button class="pbtn" id="dRevive" title="bring it back where it lies, reserves refilled; it keeps its memory">Revive here</button><button class="pbtn pri" id="dNew" title="a new fly at the world's start, with no memory">New fly</button></div>
+    </div>
+
+    <!-- keys -->
+    <div id="keyHelp">
+      <b>Camera</b><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Q</kbd><kbd>E</kbd> orbit · <kbd>Z</kbd><kbd>X</kbd> or wheel zoom · <kbd>Shift</kbd> faster · <kbd>F</kbd> follow the fly · <kbd>C</kbd> centre on it</span>
+      <b>Time</b><span><kbd>Space</kbd> pause · <kbd>.</kbd> step · <kbd>-</kbd><kbd>=</kbd> slower / faster</span>
+      <b>Edit</b><span>click a thing to select it with any tool, drag to move it, drag the fly to pick it up · <kbd>1</kbd>-<kbd>0</kbd> tools · <kbd>R</kbd> turn · <kbd>[</kbd><kbd>]</kbd> size · <kbd>Del</kbd> remove · right-click removes · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</span>
+      <b>Views</b><span><kbd>Enter</kbd> talk to the fly · <kbd>O</kbd> worlds · <kbd>V</kbd> fields · <kbd>G</kbd> memory · <kbd>B</kbd> swap · <kbd>P</kbd> inset · <kbd>M</kbd> panel · <kbd>Y</kbd> memory tab · <kbd>U</kbd> drugs · <kbd>K</kbd> pain · <kbd>L</kbd> lab · <kbd>I</kbd> larger interface · <kbd>Shift</kbd>+<kbd>M</kbd> clean view for recording · <kbd>Shift</kbd>+<kbd>P</kbd> presentation (big text, 16:9)</span>
+      <b>Cinema</b><span><kbd>Shift</kbd>+<kbd>C</kbd> cinematic camera on / off · then <kbd>Shift</kbd>+ <kbd>V</kbd> next camera · <kbd>L</kbd> letterbox / 16:9 · <kbd>B</kbd> brain inset · <kbd>D</kbd> depth of field · <kbd>J</kbd> drive strip · <kbd>R</kbd> record</span>
+    </div>
+    <button id="keyBtn" title="keys (?)"><svg class="i"><use href="#i-keys"/></svg></button>
+  </div>
+
+  <div id="grip" title="drag to resize"></div>
+
+  <aside id="panel">
+    <nav class="tabs">
+      <button class="tab-b on" data-tab="mind" title="the fly's mind: its thoughts, what it says, and you talking to it">Mind</button>
+      <button class="tab-b" data-tab="pain" title="the body's signals injected into the mind's model at layer 18 (pain, danger, hunger, thirst, heat, cold, arousal), and the pain circuit (K)">Signals</button>
+      <button class="tab-b" data-tab="drugs" title="give the fly a drug and watch what it does to its brain and body (U)">Drugs</button>
+      <button class="tab-b" data-tab="mem" title="what the fly remembers, and how memory competes for the body (Y)">Memory</button>
+      <button class="tab-b" data-tab="lab" title="neurons, stimuli and diagnostics (L)">Lab</button>
+      <span class="grow"></span>
+      <button class="tab-b" data-tab="settings" title="the model, what the fly lives for, how the body throttles the mind"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
+      <button class="ibtn" id="pHide" title="hide the panel (M)"><svg class="i"><use href="#i-x"/></svg></button>
+    </nav>
+
+    <div class="tab on" id="tabMind">
+      <div class="now">
+        <div class="nowhead"><span class="dot" id="mDot"></span><span id="mState">asleep</span><span id="mModel"></span>
+          <button class="ibtn sm" id="ctlBtn" title="who controls the fly, the model, what it lives for"><svg class="i"><use href="#i-chev"/></svg>settings</button></div>
+        <div class="nowrow"><div id="feelWord" class="none">asleep</div><div id="intent" class="none">nothing yet</div></div>
+        <div id="feelWhy"></div>
+        <div id="drives" title="the body's drives (embodiment.py): they limit what the mind can hold, notice, say, and how often it thinks"></div>
+        <div id="rpDrives" class="rp-drives" title="the body's drives (embodiment.py): they limit what the mind can hold, notice, say, and how often it thinks"></div>
+        <div id="throttleTxt"></div>
+        <div class="rp-ctl">
+          <span class="rp-ctl-g" title="the mind: off sleeps · steer: its intention drives the motor layer · narrate: it only explains · blind: it is told it steers, but the fly follows the goal"><span class="cname lv-L2">Mind</span><span class="seg L2" id="segL2"></span></span>
+          <span class="rp-ctl-g" title="the motor layer: off, the fly acts alone · rule: a keyword rule · LLM: a small local model"><span class="cname lv-L1">Motor</span><span class="seg L1" id="segL1"></span></span>
+        </div>
+        <div id="mindState"></div>
+        <button id="wake" title="switch the mind to steer: it thinks when something happens (local Qwen3-4B by default; OpenRouter costs a few cents an hour at 1×)">Wake the mind</button>
+      </div>
+
+      <div class="journal">
+        <div class="jhead"><span id="sfilters"></span></div>
+        <div id="stream"><div id="streamEmpty">The fly's thoughts appear here as it has them, with what it says and what you say to it.<br>Wake the mind, then speak: it hears you as a humming in its antennae.</div></div>
+        <button id="jumpEnd" title="back to the newest">newest ↓</button>
+      </div>
+
+      <div id="talkComposer">
+        <div id="orderBar"><span>order</span><span class="ob" id="orderTxt"></span><span class="obar"><span id="orderLeft"></span></span><button class="pbtn" id="orderRel">Release</button></div>
+        <div class="chips" id="talkChips"></div>
+        <div class="cbox" id="talkBox">
+          <span class="seg" id="talkMode"></span>
+          <textarea id="talkIn" rows="1" placeholder="say something to the fly…  (Enter)"></textarea>
+          <button id="talkSend" title="send (Enter)"><svg class="i"><use href="#i-send"/></svg></button>
+        </div>
+        <button class="pbtn" id="talkWake" title="the mind is asleep: wake it so it can hear and answer">Wake the mind to talk</button>
+      </div>
+    </div>
+
+    <div class="tab" id="tabSettings">
+      <div class="rp-set">
+        <section class="rp-group">
+          <h4>The mind</h4>
+          <p class="rp-help">Which model writes the fly's thoughts. <b>Local</b> is Qwen3-4B on this PC: the body's signals are added inside the model (Signals tab), at no cost. <b>OpenRouter</b> is an online model that is only told its body in words.</p>
+          <div class="mindgrid">
+            <label for="mindProv" title="who writes the thoughts">model</label>
+            <select id="mindProv" title="Local: Qwen3-4B on this PC (pain_server, port 8095), with the fly's pain added to its activations: the model that feels the pain. No key, no cost. OpenRouter: the online model below, told its pain in words.">
+              <option value="local">Local Qwen3-4B (feels pain)</option><option value="openrouter">OpenRouter</option></select>
+            <label for="l2model">online model</label><input type="text" class="fld" id="l2model" title="OpenRouter model id, used when the mind is set to OpenRouter">
+            <label for="l2style" title="mind: wakes when something salient happens and streams THOUGHT / FEELING / NOW · classic: a JSON reply every 4 s">style</label>
+            <select id="l2style"><option value="mind">mind (event-driven, streamed)</option><option value="classic">classic (every 4 s)</option></select>
+          </div>
+        </section>
+        <section class="rp-group">
+          <h4>What it lives for</h4>
+          <p class="rp-help">The goal the mind reads with every thought. When the mind is not steering, the motor layer follows it. Enter sets it.</p>
+          <div class="cbox gl"><textarea id="cogGoal" rows="2" placeholder="eat when hungry, drink when thirsty…"></textarea><button id="goalSet" title="set (Enter)"><svg class="i"><use href="#i-send"/></svg></button></div>
+        </section>
+        <section class="rp-group">
+          <h4>Who controls the fly</h4>
+          <p class="rp-help" style="margin-bottom:4px">The Mind and Motor switches are at the top of the Mind tab.</p>
+          <div class="rp-levhelp" style="margin:0 0 12px">
+            <b class="lv-L2">steer</b><span>its intention drives the motor layer</span>
+            <b class="lv-L2">narrate</b><span>it thinks and explains, but does not steer</span>
+            <b class="lv-L2">blind</b><span>it is told it steers, but the fly follows the goal</span>
+            <b class="lv-L1">motor off</b><span>the fly acts alone, on its brain and reflexes</span>
+            <b class="lv-L1">rule</b><span>a keyword rule turns the intention into moves</span>
+            <b class="lv-L1">LLM</b><span>a small local model (Qwen3-1.7B) does</span>
+          </div>
+          <div class="rp-stats">
+            <span class="lv-L2">Mind</span><span class="cstat" id="l2Stats"></span>
+            <span class="lv-L1">Motor</span><span class="cstat" id="l1Stats"></span>
+            <span class="lv-L0">Fly</span><span class="cstat" id="l0Stats"></span>
+          </div>
+          <div id="driving"></div>
+          <details><summary>what the motor layer sees</summary><pre class="llmobs" id="l1Obs"></pre></details>
+        </section>
+        <section class="rp-group">
+          <h4>The body throttles the mind</h4>
+          <p class="rp-help">The fly's drives (hunger, danger, pain, drugs, tiredness) limit what the mind can hold and say. Off: the mind thinks as if the body were fine, and no drive signals are injected into the model either.</p>
+          <div class="trow"><label title="lever 2: the fly's drives throttle the mind (working memory, attention, thought length, noise, tempo, a body line). Off = the mind as before."><input type="checkbox" id="embodyOn"> the body throttles the mind</label></div>
+          <div class="trow" id="embodyLevers"></div>
+          <div class="rp-levhelp">
+            <b>memory</b><span>how many things it can hold in mind at once</span>
+            <b>attention</b><span>a strong drive narrows what it notices to what matters for that drive</span>
+            <b>length</b><span>how long a thought can be, down to fragments</span>
+            <b>noise</b><span>how erratic its wording gets</span>
+            <b>tempo</b><span>how often it thinks; sedated, it may stop thinking</span>
+            <b>body line</b><span>a line telling it how its body feels</span>
+          </div>
+        </section>
+        <section class="rp-group">
+          <h4>The fly and you</h4>
+          <div class="trow"><label title="off: things appear and vanish on their own, and a voice speaks from nowhere. On: the fly knows a person built its world and talks to it"><input type="checkbox" id="revealed"> the fly knows about you</label></div>
+          <p class="rp-help" style="margin:8px 0 0">Off: things appear and vanish on their own, and your voice comes from nowhere. On: it knows a person built its world and is talking to it.</p>
+        </section>
+      </div>
+    </div>
+
+    <div class="tab" id="tabMem">
+      <div class="mhead">
+        <div class="crow"><span class="cname" style="color:var(--M)">Memory</span><span class="seg M" id="segMem"></span></div>
+        <div class="crow" style="margin-top:8px"><span class="cname" style="color:var(--faint);font-weight:500">weight</span>
+          <input type="range" class="wslider" id="memW" min="0" max="1" step="0.05"><span class="cstat" id="memWv" style="margin:0"></span></div>
+        <div class="mstate"><span id="mGateState">quiet</span><span id="mHolder"></span></div>
+        <div class="claims"><span>memory claim</span><div class="bar"><span id="cmBar"></span></div><span id="cmV"></span>
+          <span>motor claim</span><div class="bar l1"><span id="c1Bar"></span></div><span id="c1V"></span></div>
+        <div id="mAlign"></div>
+        <div id="mProp"></div>
+      </div>
+      <canvas id="mMap" width="720" height="720"></canvas>
+      <div class="mlegend"><span><i style="background:#4fd8c4"></i>remembered</span><span><i style="background:#6fdc8c"></i>perceived now</span><span><i style="background:#ff5d6c"></i>missing</span><span><i style="background:#3a434e"></i>where things really are</span></div>
+      <section class="sec" data-sec="beliefs">
+        <button class="sh">Beliefs <span class="sum" id="belSum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb"><div class="blist" id="belList"></div></div>
+      </section>
+      <section class="sec" data-sec="episodes">
+        <button class="sh">Episodes <span class="sum" id="epSum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb"><div class="eplist" id="epList"></div></div>
+      </section>
+      <section class="sec closed" data-sec="memhow">
+        <button class="sh">How it works <span class="sum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb small" style="margin-top:0">Memory runs on its own thread, five times a second. It updates only from what the fly perceives: things within sight range (a fire's glow carries furthest), outside a blind wedge behind it, not hidden by walls, plus what its feet taste and its antennae feel. Unseen things keep their last place, and confidence halves every 90 s. With memory on, the motor layer and the mind see only what is perceived now; the rest they get from memory.<br><br>
+          In <b>contend</b> mode memory bids for the motor neurons (weight × urgency × confidence) against the motor layer (0.35 while it holds an intent, 1.0 under your order). The higher bid drives. The mind's override beats both, and the fly's reflexes are never muted. In <b>shadow</b> mode it only watches and proposes. Aligned means memory and the gated system want the same direction. This is a demo mechanism, not a model of the fly's mushroom body.</div>
+      </section>
+    </div>
+
+    <div class="tab" id="tabDrugs">
+      <div class="dhead">
+        <div class="crow"><span class="cname" style="color:var(--drug)">Drugs</span><span class="cstat" id="dWho" style="margin:0">for the fly</span>
+          <span class="grow"></span><button class="pbtn" id="dWash" title="remove every drug from the fly at once (injected, fed and vapour)">Wash out all</button></div>
+        <p class="rp-help" style="margin:8px 0 8px">Pick a dose, then <b>inject</b> (acts at once), <b>feed a drop</b> (absorbed over seconds) or fill the air with <b>vapour</b> (until you stop it). <b>Lace food</b>: click the floor to put down sugar with the drug in it. Wash out clears every drug at once.</p>
+        <div class="rp-aware"><span>the mind</span><span class="seg" id="segAware"></span><div class="small" id="awareTxt"></div></div>
+        <div class="dgrid" id="dGrid"></div>
+      </div>
+      <div class="rp-drugs" id="rpDrugs"></div>
+      <div class="dcard" id="dCard"></div>
+      <div class="dsub">In the fly now <span class="tag pre">every drug, the last minute</span></div>
+      <canvas id="dChart" width="760" height="240"></canvas>
+      <div class="dsub">In the brain <span class="tag sim">simulated</span></div>
+      <div class="dlev" id="dLev"></div>
+      <div class="dsub">In the body <span class="tag scr">scripted from the literature</span></div>
+      <div class="dlev" id="dPhen"></div>
+      <div class="dsub">Reflex check<span id="rpRefName"></span> <span class="tag pre">connectome, measured offline</span></div>
+      <div class="dref" id="dRef"></div>
+      <div class="dfoot">Concentration is in units of the drug's reference level (1 = its main brain effect is half-maximal), and time is compressed: seconds here stand for minutes in a real fly. The brain effects change parameters of the connectome model and the network responds on its own; the body effects are written by hand from what drugged flies are reported to do, because walking in this sim is commanded by a placeholder policy. Sources: research/DRUGS_GROUNDING.md.</div>
+    </div>
+
+    <div class="tab" id="tabPain">
+      <div class="rp-sig-head">
+        <h3>Signals into the mind</h3>
+        <div class="rp-state" id="rpSigState"><i></i><span>waiting for the sim…</span></div>
+        <p class="rp-help">The body's drives, each added along its own direction inside the local model (Qwen3-4B's residual stream, layer 18) while it writes a thought, and updated token by token. <b>Level</b> is the drive now, 0 to 1. <b>Dose</b> is what the server added: level × that drive's calibrated maximum, with all of them together capped at 4.5.</p>
+      </div>
+      <div class="rp-sig" id="rpSig"></div>
+      <div class="rp-sub">Not injected <span class="tag">they shape the mind through the throttle (Settings)</span></div>
+      <div class="rp-sig" id="rpSigOther"></div>
+
+      <div class="rp-sub" style="color:var(--pain)">Pain <span class="tag">the only signal with its own circuit in the connectome</span></div>
+      <div class="rp-pain">
+        <div class="pplain" id="pPlain">Nothing hurts.</div>
+        <div class="pbig" title="I = max(A, 0.6 L): A is the PPL1 read-out smoothed over 1 s, L a slow trace that lingers for tens of seconds">
+          <div class="pl"><b id="pI">0.00</b><span id="pLvl">none</span></div>
+          <div class="pw" id="pWhere"></div>
+          <div class="pmeter"><span class="pL" id="pLbar"></span><span class="pI" id="pIbar"></span></div>
+        </div>
+        <canvas id="pChart" width="760" height="220"></canvas>
+      </div>
+      <div class="rp-sub">Pain-only controls</div>
+      <div class="rp-pctl">
+        <div class="lab">Hurt it with no injury <span class="tag pre">opto-style drive of the pain entry neurons</span></div>
+        <div class="prow">strength <input type="range" id="pOptoN" min="0.1" max="1" step="0.1" value="0.6"><b id="pOptoV" style="color:var(--text);font:500 11.5px var(--mono)">0.6</b></div>
+        <div class="prow"><span class="seg" id="segPSide"></span><span class="seg" id="segPSecs"></span><button class="go" id="pOpto">Drive</button></div>
+        <div class="lab">The circuit</div>
+        <div><span class="seg" id="segPSil"></span><div class="small" id="pSilTxt"></div></div>
+        <div class="lab">What the mind is told</div>
+        <div><span class="seg" id="segPMind"></span><div class="small" id="pMindTxt"></div></div>
+        <div class="small">it reads, in YOUR BODY:</div>
+        <div class="pline" id="pLine"></div>
+        <div class="lab">Older pain-only vector <span class="tag pre">the server uses it only when the drive signals above are not sent</span></div>
+        <div><span class="seg" id="segPSteer"></span><div class="small" id="pSteerTxt"></div></div>
+      </div>
+      <details class="pdet"><summary>How pain works: the pathway in the connectome</summary>
+      <div class="dsub">The pathway <span class="tag sim">simulated</span></div>
+      <div class="dlev" id="pPath"></div>
+      <div class="dfoot">The entry is 20 ascending neurons chosen by their connectivity to the PPL1 punishment dopamine neurons: a STAND-IN for the ascending neurons that abdominal nociceptors reach in real flies (Jones et al. 2025), whose FlyWire identities are not known. Injury (heat above 38 °C in the body or on a surface it touches, the hand, slow tissue damage) drives them; the pain signal is what PPL1 does in response. Nociception for the fly; for the language model, a functional analogue. Nothing here shows that either one feels anything. Design: research/PAIN_DESIGN.md.</div>
+      </details>
+    </div>
+
+    <div class="tab" id="tabLab">
+      <section class="sec" data-sec="perf">
+        <button class="sh">Performance <span class="sum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb"><div class="kvs">
+          <span class="kv">brain wall/sim <b id="k-brain">-</b></span><span class="kv">body wall/sim <b id="k-body">-</b></span>
+          <span class="kv">policy <b id="k-pol">-</b></span>
+        </div></div>
+      </section>
+      <section class="sec" data-sec="chain">
+        <button class="sh">What drives what <span class="sum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb"><div class="chain" id="chain">waiting for sim&hellip;</div></div>
+      </section>
+      <section class="sec" data-sec="dn">
+        <button class="sh">Descending neurons &rarr; drive <span class="sum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb"><div class="bars" id="bars"></div></div>
+      </section>
+      <section class="sec" data-sec="opto">
+        <button class="sh">Activate / silence <span class="sum">in-silico optogenetics</span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb">
+          <div class="btns" id="actBtns"></div>
+          <div class="row">
+            <input type="text" id="ctype" placeholder="cell type, e.g. DNp09_left, LC4, 7205…">
+            <button id="ctAct">Activate</button><button id="ctSil" class="sil">Silence</button>
+          </div>
+          <div class="note">Activate = 150 Hz Poisson drive (Shiu et al. protocol). Silence = outgoing synapses zeroed.</div>
+        </div>
+      </section>
+      <section class="sec" data-sec="stim">
+        <button class="sh">Stimuli and body <span class="sum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb">
+          <div class="btns">
+            <button data-stim="loom_left">Loom left</button><button data-stim="loom_right">Loom right</button>
+            <button data-stim="sugar">Sugar taste</button><button id="bDrop">Drop object</button>
+          </div>
+          <div class="btns" style="margin-top:6px">
+            <button id="bPushL">Push &larr;</button><button id="bPushR">Push &rarr;</button><button id="bPushUp">Flick up</button><button id="bRight">Right fly</button>
+          </div>
+          <div class="btns" style="margin-top:6px">
+            <button id="bAuto" class="on">Autonomy</button><button id="bSens" class="on">Sensory</button>
+            <button id="bPause">Pause</button><button id="bReset">Reset fly</button><button id="bClear">Clear inputs</button>
+          </div>
+        </div>
+      </section>
+      <section class="sec closed" data-sec="sens">
+        <button class="sh">Raw sensory state <span class="sum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb"><div id="sensory"></div></div>
+      </section>
+      <section class="sec closed" data-sec="events">
+        <button class="sh">Events <span class="sum"></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb"><div id="events"></div></div>
+      </section>
+      <section class="sec closed" data-sec="legacy">
+        <button class="sh">Single-layer LLM <span class="sum">older v1 loop</span><svg class="i chev"><use href="#i-chev"/></svg></button>
+        <div class="sb">
+          <div class="row">
+            <button id="bLLM">LLM off</button>
+            <input type="text" id="llmGoal" value="walk to the food drop and eat it" title="goal for the LLM">
+          </div>
+          <div class="llm" id="llmDecision"><span class="ph">off. Needs an OpenAI-compatible server (default 127.0.0.1:8081)</span></div>
+          <details><summary>what the LLM sees</summary><pre class="llmobs" id="llmObs"></pre></details>
+          <div class="note">Intervene by hand (same neural path the LLM uses, 1 s):</div>
+          <div class="btns" id="intentBtns"></div>
+        </div>
+      </section>
+    </div>
+  </aside>
+</div>
+
+<div id="worldPop">
+  <h4>Worlds</h4>
+  <div class="wgrid" id="wGrid"></div>
+  <div class="wrow">
+    <input type="text" id="wSaveName" placeholder="name this world…" maxlength="40">
+    <button class="pbtn" id="wSave" title="save the world as it is now, with the fly where it stands, to sim/worlds/">Save</button>
+    <span class="grow"></span>
+    <button class="pbtn" id="wUndo2" title="Ctrl+Z">Undo</button><button class="pbtn" id="wRedo2" title="Ctrl+Y">Redo</button>
+  </div>
+  <div class="small">Loading a world rebuilds the arena, puts the fly at its start and wipes its memory. Undo brings back the world before.</div>
+</div>
+
+<div id="loading"><div class="spin"></div><b>flysim</b><span>loading the brain and the body&hellip;</span></div>
+<script type="module" src="./app.js"></script>
+<script type="module" src="./voice.js"></script>   <!-- the fly's voice + hold-to-talk; off until switched on -->
+<script type="module" src="./right_panel.js"></script>   <!-- side panel: drive bars, Signals, drug cards, thought details -->
+<script type="module" src="./toolbar.js"></script>   <!-- the world tool palette: categories, flyouts, tooltips -->
+<script type="module" src="./left_panel.js"></script>   <!-- the left panel's width and split grips (layout.css) -->
+</body>
+</html>

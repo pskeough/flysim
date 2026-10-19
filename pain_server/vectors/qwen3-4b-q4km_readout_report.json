@@ -1,0 +1,72 @@
+{
+ "layers": [
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18
+ ],
+ "checks": {
+  "11": {
+   "approach_heldout_auc": 0.672,
+   "threat_vs_neutral_auc": 0.685,
+   "freeze_threat_vs_arousal_auc": 0.829,
+   "avoid_pain_vs_neutral_auc": 0.917,
+   "cos_approach_freeze": -0.054
+  },
+  "12": {
+   "approach_heldout_auc": 0.672,
+   "threat_vs_neutral_auc": 0.763,
+   "freeze_threat_vs_arousal_auc": 0.912,
+   "avoid_pain_vs_neutral_auc": 0.908,
+   "cos_approach_freeze": -0.036
+  },
+  "13": {
+   "approach_heldout_auc": 0.661,
+   "threat_vs_neutral_auc": 0.683,
+   "freeze_threat_vs_arousal_auc": 0.891,
+   "avoid_pain_vs_neutral_auc": 0.993,
+   "cos_approach_freeze": -0.035
+  },
+  "14": {
+   "approach_heldout_auc": 0.667,
+   "threat_vs_neutral_auc": 0.674,
+   "freeze_threat_vs_arousal_auc": 0.882,
+   "avoid_pain_vs_neutral_auc": 0.888,
+   "cos_approach_freeze": -0.038
+  },
+  "15": {
+   "approach_heldout_auc": 0.656,
+   "threat_vs_neutral_auc": 0.657,
+   "freeze_threat_vs_arousal_auc": 0.806,
+   "avoid_pain_vs_neutral_auc": 1.0,
+   "cos_approach_freeze": -0.059
+  },
+  "16": {
+   "approach_heldout_auc": 0.667,
+   "threat_vs_neutral_auc": 0.659,
+   "freeze_threat_vs_arousal_auc": 0.822,
+   "avoid_pain_vs_neutral_auc": 0.881,
+   "cos_approach_freeze": -0.051
+  },
+  "17": {
+   "approach_heldout_auc": 0.667,
+   "threat_vs_neutral_auc": 0.67,
+   "freeze_threat_vs_arousal_auc": 0.869,
+   "avoid_pain_vs_neutral_auc": 1.0,
+   "cos_approach_freeze": -0.034
+  },
+  "18": {
+   "approach_heldout_auc": 0.661,
+   "threat_vs_neutral_auc": 0.681,
+   "freeze_threat_vs_arousal_auc": 0.949,
+   "avoid_pain_vs_neutral_auc": 0.938,
+   "cos_approach_freeze": -0.021
+  }
+ },
+ "wall_s": 7.7,
+ "readout_cb_ms_per_call": 0.2135
+}

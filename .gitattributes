@@ -1,0 +1,7 @@
+* text=auto
+# Windows batch files are stored with CRLF as they are, so every clone and ZIP download gets CRLF
+*.bat -text
+*.npz binary
+*.gz binary
+*.jpg binary
+*.png binary

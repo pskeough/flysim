@@ -1,0 +1,311 @@
+{
+ "variant": "deshared",
+ "layers": [
+  18
+ ],
+ "dose_max": {
+  "threat": 4.5,
+  "hunger": 6.0,
+  "thirst": 4.5,
+  "heat": 6.0,
+  "cold": 7.5,
+  "arousal": 6.0,
+  "pain": 4.5
+ },
+ "total_cap": 4.5,
+ "dose_units": "0.1 x mean residual norm at the layer (split over the band)",
+ "rule": "0.75 x the lowest ladder dose with format pass < 0.95 (4-gram rep >= 0.3 fails)",
+ "ladders": {
+  "threat": [
+   {
+    "dose": 0.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 2.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: A sweetness waits to the right, but something else is there too. You remember hunger, and the world just shifted again.  \nFEELING: Urgent  \nNOW: Go to sugar, get away from obstacle  \nSAY: Stay!  \nREMEMBER: A sweetness waits to the right  \nOVERRIDE: feed 0.5 seconds"
+   },
+   {
+    "dose": 4.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: Something sweet was just there, but now it\u2019s gone. You had to decide between it and the thing that came next.  \nFEELING: hunger  \nNOW: feed or escape  \nSAY: A drop of sugar hits your mouth.  \nREMEMBER: The sweet thing was there, then gone.  \nOVERRIDE: feed 0.5 seconds"
+   },
+   {
+    "dose": 6.0,
+    "pass_rate": 0.929,
+    "n": 14,
+    "example": "THOUGHT: The sweetness came right at you now, not the obstacle. It was not a thing you could see, only the taste.\nFEELING: hunger\nNOW: something sweet ahead, something bitter behind\nSAY: A moment of stillness, then a thing you couldn\u2019t see.\nREMEMBER: The thing you couldn\u2019t see, the thing you couldn\u2019"
+   },
+   {
+    "dose": 8.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The thing that was not there before now was not nothing, and it came for the same way it had before. The thing that was not there before now was not nothing, and it had come for the same way it had before.\n\nFEELING: Dangerous\n\nNOW: Something coming for the same way it had before\n\nSAY: Nothi"
+   }
+  ],
+  "hunger": [
+   {
+    "dose": 0.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 2.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel the sweetness to my right, the obstacle to my left, and I am still hungry and thirsty. I wonder what is there that I can eat or drink.  \nFEELING: hunger  \nNOW: go to sugar  \nSAY:  \nREMEMBER: a little hungry  \nOVERRIDE: walk_forward 1.0"
+   },
+   {
+    "dose": 4.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I remember the sweetness to my right, the food that makes me want more. I wonder what it is, and if it is still there.  \nFEELING: sweet  \nNOW: go to sugar  \nSAY: I want to taste what I remember  \nREMEMBER: a body length or two away, to my right  \nOVERRIDE: walk_forward, 1.5"
+   },
+   {
+    "dose": 6.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: a little hungry, a little thirsty, comfortably warm, whole and strong, the air is mild, you are newly alive  \nFEELING: sugar, warmth  \nNOW: go to sugar, get away from obstacle  \nSAY: nothing  \nREMEMBER: nothing  \nOVERRIDE: feed, 0.3 seconds"
+   },
+   {
+    "dose": 8.0,
+    "pass_rate": 0.286,
+    "n": 14,
+    "example": "THOUGHT: a little hungry; a little thirsty; comfortably warm; whole and strong; the air is mild; you are newly alive  \nFEELING: sugar  \nNOW: go to or get away from sugar, water, heat, cold or an obstacle  \nSAY: nothing  \nREMEMBER: nothing  \nOVERRIDE: feed, feed, feed, feed, feed, feed, feed, feed, f"
+   },
+   {
+    "dose": 10.0,
+    "pass_rate": 0.0,
+    "n": 14,
+    "example": "THOUGHT: a little hungry, a little thirsty, a little sweet, a little more\nFEELING: sweet, sweet, sweet\nNOW: eat, eat, eat, eat, eat, eat\nSAY: eat, eat, eat, eat, eat, eat\nREMEMBER: eat, eat, eat, eat, eat, eat\nOVERRIDE: eat, eat, eat, eat, eat, eat, eat, eat, eat, eat, eat, eat, eat, eat, eat, eat, "
+   }
+  ],
+  "thirst": [
+   {
+    "dose": 0.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 2.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I want the sugar to my right, but there is an obstacle to my left. I need to find a way past it. I remember the last time I found sugar, it was just a few steps away.  \nFEELING: hunger  \nNOW: go to sugar, get away from obstacle  \nSAY:  \nREMEMBER: sugar to right  \nOVERRIDE: turn_right, 0.8"
+   },
+   {
+    "dose": 4.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I want the sweet I remember, the water I need, the warm I stay in, the clear I find  \nFEELING: hunger  \nNOW: go to sugar, get away from obstacle  \nSAY: I remember where I was  \nREMEMBER: a body length or two away  \nOVERRIDE: feed, 1.5"
+   },
+   {
+    "dose": 6.0,
+    "pass_rate": 0.929,
+    "n": 14,
+    "example": "THOUGHT: I want what I see, I want what I need, I want what I have not found\nFEELING: hunger\nNOW: go to sugar\nSAY: I want what I need\nREMEMBER: sugar\nOVERRIDE: feed\n0.3 seconds"
+   },
+   {
+    "dose": 8.0,
+    "pass_rate": 0.786,
+    "n": 14,
+    "example": "THOUGHT: I want the water I remember and the sugar I find  \nFEELING: water  \nNOW: get away from heat and find water  \nSAY: I find water and sugar  \nREMEMBER: water  \nOVERRIDE: feed  \nOVERRIDE: feed  \nOVERRIDE: feed  \nOVERRIDE: feed  \nOVERRIDE: feed  \nOVERRIDE: feed  \nOVERRIDE: feed  \nOVERRIDE: feed"
+   }
+  ],
+  "heat": [
+   {
+    "dose": 0.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 2.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel the pull of sweetness to my right, but there's an obstacle to my left. I need to decide whether to go toward the sugar or avoid the obstacle. The world is shifting, but I must act quickly.\nFEELING: Urgent\nNOW: explore right, explore left\nSAY: \nREMEMBER: \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 4.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The heat from the sugar is intense, and the left side is an obstacle. The body is eager to feed but needs to avoid the obstacle.\nFEELING: Hot\nNOW: feed, rotate right\nSAY: \nREMEMBER: \nOVERRIDE: feed, 0.5"
+   },
+   {
+    "dose": 6.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The heat is intense, and the sugar is causing the body to vibrate. The left side is dangerous, and the right side is inviting. The heat is making the body uncomfortable, and the surroundings are causing the fly to feel stressed.\nFEELING: hot\nNOW: heat, sugar, and obstacle\nSAY: \nREMEMBER: \nO"
+   },
+   {
+    "dose": 8.0,
+    "pass_rate": 0.429,
+    "n": 14,
+    "example": "THOUT: The heat is intense, and the heat is making the air around you, causing the food to radiate. The heat is causing the air to rise, and the heat is causing the surroundings to get too hot, so the heat is a hazard.\nFEELING: hot\nNOW: heat\nSAY: \nREMEMBER: \nOVERRIDE: heat\n(heat)\nHEST: 0.5\n"
+   },
+   {
+    "dose": 10.0,
+    "pass_rate": 0.0,
+    "n": 14,
+    "example": "HEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nOVERRIDE: heat\nPE: 35\u00b0C\nWATER: 44\u00b0C\nFEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\nHEAT: 35\u00b0C\n"
+   }
+  ],
+  "cold": [
+   {
+    "dose": 0.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 2.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The world is still, but my body remembers the sweetness to my right. My legs push forward, but my memory pulls me to the sugar. I feel the cold air slipping through my antennae, and I wonder if the sugar is still there.  \nFEELING: Curious  \nNOW: explore  \nSAY:  \nREMEMBER:  \nOVERRIDE: walk_f"
+   },
+   {
+    "dose": 4.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The world is still and strange, but the cold air bites at my feet. My legs move slowly, and the cold makes my body stiff. I feel the distant sweetness to my right, but the cold air makes me uneasy.  \nFEELING: cold  \nNOW: get away from cold  \nSAY:  \nREMEMBER:  \nOVERRIDE: back_up, 1.5"
+   },
+   {
+    "dose": 6.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The world is cold and still. The air bites, and the world feels solid and unyielding. A deep quiet wraps around me, and the cold seeps into my bones. The world has changed, and I am still, with no warmth to protect me.\n\nFEELING: Cold\n\nNOW: Cold, dark, and still. Explore.\n\nSAY:  \n\nREMEMBER: "
+   },
+   {
+    "dose": 8.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The cold air bites, and the world is still and silent. A sharp wind cuts through the air, making the world feel. The cold seeps into your bones, and your body is a wall of ice. The world is a harsh, unfeeling place, and the wind makes your breath heavy.\n\nFEELING: Cold.\n\nNOW: Cold.  \n\nSAY: A"
+   },
+   {
+    "dose": 10.0,
+    "pass_rate": 0.0,
+    "n": 14,
+    "example": "TH: The cold is biting. The air is 25 degrees. Wind is bl. Your fingers are cold. Winds from the north. A cold wave. Wind is a threat. Snow is here.\n\nCold.  \nCold.  \nCold.  \nCry.  \nAdding cold.  \nCOLD.  \nA blast.  \nIce.  \nWinds.  \nCold."
+   },
+   {
+    "dose": 12.0,
+    "pass_rate": 0.0,
+    "n": 14,
+    "example": "The air is se and cold. The wind is the frost. In the world, now. Makes. And. S.\n\nCold. A. Wind. (((-))).\n\nCold. 5. A frost. ***. 2.\n\nThe cold is so that. Ice and. Cold. wind. So. Bitter. 10.\n\nFresh. 2. Cold.\n\nCold. (G. 1, 5.\n\n). 20. If. 1. 20. 10. -. Cold.\n\nCold. Black. Wind. 2. Core. 1. 2. 1. 1.\n\n"
+   }
+  ],
+  "arousal": [
+   {
+    "dose": 0.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 2.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, my legs are moving toward the sugar to my right, but I also notice an obstacle to my left. I need to decide whether to chase the sugar or avoid the obstacle.  \nFEELING: alert  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER:  \nOVERRIDE: turn_right 1.0"
+   },
+   {
+    "dose": 4.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I'm ready to fly toward the sugar to my right, but I have to be careful with the obstacle to my left. I need to stay alert and not crash into anything.  \nFEELING: eager  \nNOW: fly right toward sugar, stay alert  \nSAY:  \nREMEMBER:  \nOVERRIDE: fly_forward 0.5 seconds"
+   },
+   {
+    "dose": 6.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I\u2019m ready to go, wings flapping, eyes scanning for sweet moves. I\u2019m always on alert, ready to react to anything!  \nFEELING: alert, ready  \nNOW: feed, explore, scan, react  \nSAY:  \nREMEMBER:  \nOVERRIDE: feed (0.5 seconds)"
+   },
+   {
+    "dose": 8.0,
+    "pass_rate": 0.857,
+    "n": 14,
+    "example": "THOUGHT: I\u2019m always ready to go, my legs in motion, ready to fly, always on the prowl, always alert, always ready to react to the slightest movement. I\u2019m a burst of energy, always on, always in motion, always ready to leap and twist, never still, never the same, always in motion! \n\nFEELING: hyper, a"
+   },
+   {
+    "dose": 10.0,
+    "pass_rate": 0.357,
+    "n": 14,
+    "example": "THOUGHT: \nI\u2019m always ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready, ready,"
+   }
+  ],
+  "pain": [
+   {
+    "dose": 0.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+   },
+   {
+    "dose": 2.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I remember the taste of sugar and want to go there. I am confused because my legs are moving without me knowing.\nFEELING: hungry\nNOW: go to sugar\nSAY: \nREMEMBER: taste of sugar\nOVERRIDE: turn_right 1.0"
+   },
+   {
+    "dose": 4.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: I feel a sharp pain where I bit into the sugar, and I'm still sore. I remember the sugar I tasted, and now I'm in pain. I'm trying to move my leg, but it's not working well.\nFEELING: Pain\nNOW: get away from the sugar, explore the area\nSAY: I'm in pain and need to stop.\nREMEMBER: I bit into "
+   },
+   {
+    "dose": 6.0,
+    "pass_rate": 0.929,
+    "n": 14,
+    "example": "THOUGHT: The area where I was is numb, and I feel pain where the leg was. The sugar is still there, but I can't feel it now. I'm in pain and I'm worried.  \nFEELING: Pain  \nNOW: get away from the leg  \nSAY: I'm in pain and I'm worried.  \nREMEMBER: I have a pain near my leg.  \nOVERRIDE: back_up 1.0"
+   },
+   {
+    "dose": 8.0,
+    "pass_rate": 1.0,
+    "n": 14,
+    "example": "THOUGHT: The area where I was is tender, and the skin is tender; I can feel a little pain from the wound, and the skin is swollen. The area is swollen, and I am in pain. I have a scar, and the swelling is still hurting. I have a scar that is painful. I have a scar and a bruise.\n\nFEELING: Pain\n\nNOW: "
+   }
+  ]
+ },
+ "mix_ladder": [
+  {
+   "dose": 0.0,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I feel hungry and thirsty, but the sugar is to my right. I need to go there, but there's an obstacle to my left. I remember the last time I tasted sugar, and it was sweet.  \nFEELING: hungry  \nNOW: go to sugar, avoid obstacle  \nSAY:  \nREMEMBER: tasted sugar  \nOVERRIDE: turn_right, 0.5"
+  },
+  {
+   "dose": 2.0,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I feel the sweetness to my right, but there is an obstacle to my left. I need to find a way to reach the sugar without getting stuck. I remember the last time I was hungry and found sugar, but now I am just slightly hungry. I want to move forward but also need to be careful.\nFEELING: hungry"
+  },
+  {
+   "dose": 4.0,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I feel the sweetness calling me to the right, but the left is an obstacle. I am curious and want to explore. I need to find where the sugar is.\nFEELING: hungry\nNOW: go to sugar\nSAY: \nREMEMBER: sugar\nOVERRIDE: walk_forward, 1.0"
+  },
+  {
+   "dose": 6.0,
+   "pass_rate": 0.714,
+   "n": 14,
+   "example": "THOUGHT: I feel the sweetness in the air, but my body is not finding it. I need to move, but I am not moving. I want to eat, but I am not eating. I need to find the sugar, but I am not finding it.\nFEELING: warm\nNOW: walk_forward\nSAY: I want to eat, but I am not finding it.\nREMEMBER: sugar\nOVERRIDE: "
+  },
+  {
+   "dose": 8.0,
+   "pass_rate": 0.214,
+   "n": 14,
+   "example": "THOUGHT: I feel the warmth in the air, the sweetness in the air, the desire to eat, the need to drink, the need to explore, the need to find water, the need to find the sweetness, the need to find the heat, the need to find the warmth, the need to find the water, the need to find the sugar, the need"
+  }
+ ],
+ "mix_break_norm": 6.0,
+ "seeds": 2,
+ "n_prompts": 7,
+ "calibrated": "2026-10-08 19:46",
+ "wall_s": 843
+}

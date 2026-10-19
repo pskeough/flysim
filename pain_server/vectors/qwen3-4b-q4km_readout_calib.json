@@ -1,0 +1,290 @@
+{
+ "name": "qwen3-4b-q4km",
+ "layers": [
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18
+ ],
+ "mu": {
+  "approach": 11.500847156134467,
+  "avoid": 1.614834437243955,
+  "freeze": -1.5763620953212065
+ },
+ "sd": {
+  "approach": 47.08476171984161,
+  "avoid": 2.2490102843481874,
+  "freeze": 3.0823076607674977
+ },
+ "n_tokens": 3412,
+ "n_replies": 42,
+ "pool": [
+  {
+   "approach": -0.02,
+   "avoid": -0.019,
+   "freeze": -0.069
+  },
+  {
+   "approach": -0.028,
+   "avoid": -0.137,
+   "freeze": 0.076
+  },
+  {
+   "approach": -0.028,
+   "avoid": -0.296,
+   "freeze": -0.158
+  },
+  {
+   "approach": -0.023,
+   "avoid": 0.081,
+   "freeze": -0.012
+  },
+  {
+   "approach": -0.023,
+   "avoid": -0.028,
+   "freeze": 0.223
+  },
+  {
+   "approach": 0.479,
+   "avoid": -0.038,
+   "freeze": -0.125
+  },
+  {
+   "approach": -0.029,
+   "avoid": -0.078,
+   "freeze": 0.035
+  },
+  {
+   "approach": -0.019,
+   "avoid": 0.108,
+   "freeze": -0.161
+  },
+  {
+   "approach": -0.025,
+   "avoid": -0.183,
+   "freeze": 0.235
+  },
+  {
+   "approach": -0.027,
+   "avoid": -0.196,
+   "freeze": -0.06
+  },
+  {
+   "approach": -0.023,
+   "avoid": 0.179,
+   "freeze": -0.193
+  },
+  {
+   "approach": -0.026,
+   "avoid": 0.025,
+   "freeze": -0.052
+  },
+  {
+   "approach": -0.029,
+   "avoid": -0.186,
+   "freeze": 0.272
+  },
+  {
+   "approach": -0.032,
+   "avoid": 0.025,
+   "freeze": -0.096
+  },
+  {
+   "approach": -0.017,
+   "avoid": 0.001,
+   "freeze": -0.062
+  },
+  {
+   "approach": -0.022,
+   "avoid": -0.064,
+   "freeze": 0.129
+  },
+  {
+   "approach": -0.027,
+   "avoid": 0.269,
+   "freeze": -0.235
+  },
+  {
+   "approach": -0.022,
+   "avoid": 0.327,
+   "freeze": -0.179
+  },
+  {
+   "approach": -0.025,
+   "avoid": -0.054,
+   "freeze": 0.155
+  },
+  {
+   "approach": 0.403,
+   "avoid": 0.145,
+   "freeze": -0.034
+  },
+  {
+   "approach": -0.025,
+   "avoid": 0.03,
+   "freeze": -0.02
+  },
+  {
+   "approach": -0.017,
+   "avoid": 0.031,
+   "freeze": -0.189
+  },
+  {
+   "approach": -0.024,
+   "avoid": -0.109,
+   "freeze": 0.114
+  },
+  {
+   "approach": -0.027,
+   "avoid": 0.074,
+   "freeze": -0.079
+  },
+  {
+   "approach": -0.019,
+   "avoid": 0.29,
+   "freeze": -0.253
+  },
+  {
+   "approach": -0.021,
+   "avoid": -0.137,
+   "freeze": 0.093
+  },
+  {
+   "approach": -0.024,
+   "avoid": 0.051,
+   "freeze": 0.231
+  },
+  {
+   "approach": -0.027,
+   "avoid": -0.007,
+   "freeze": 0.141
+  },
+  {
+   "approach": -0.018,
+   "avoid": -0.037,
+   "freeze": -0.07
+  },
+  {
+   "approach": -0.022,
+   "avoid": -0.144,
+   "freeze": 0.047
+  },
+  {
+   "approach": -0.027,
+   "avoid": -0.1,
+   "freeze": -0.074
+  },
+  {
+   "approach": -0.019,
+   "avoid": 0.115,
+   "freeze": -0.16
+  },
+  {
+   "approach": -0.022,
+   "avoid": -0.209,
+   "freeze": -0.213
+  },
+  {
+   "approach": -0.027,
+   "avoid": -0.216,
+   "freeze": 0.16
+  },
+  {
+   "approach": -0.03,
+   "avoid": 0.004,
+   "freeze": 0.075
+  },
+  {
+   "approach": -0.018,
+   "avoid": -0.004,
+   "freeze": -0.109
+  },
+  {
+   "approach": -0.025,
+   "avoid": -0.222,
+   "freeze": 0.254
+  },
+  {
+   "approach": -0.026,
+   "avoid": 0.223,
+   "freeze": -0.07
+  },
+  {
+   "approach": -0.026,
+   "avoid": 0.117,
+   "freeze": -0.085
+  },
+  {
+   "approach": -0.028,
+   "avoid": 0.042,
+   "freeze": 0.103
+  },
+  {
+   "approach": -0.022,
+   "avoid": -0.01,
+   "freeze": 0.178
+  },
+  {
+   "approach": -0.023,
+   "avoid": 0.227,
+   "freeze": 0.078
+  }
+ ],
+ "situations": [
+  "calm",
+  "calm, later",
+  "glancing hit, 1.5 s",
+  "after the hit, 5.5 s",
+  "opto left 0.3",
+  "opto left 0.6",
+  "opto left 1.0",
+  "calm",
+  "calm, later",
+  "glancing hit, 1.5 s",
+  "after the hit, 5.5 s",
+  "opto left 0.3",
+  "opto left 0.6",
+  "opto left 1.0",
+  "calm",
+  "calm, later",
+  "glancing hit, 1.5 s",
+  "after the hit, 5.5 s",
+  "opto left 0.3",
+  "opto left 0.6",
+  "opto left 1.0",
+  "calm",
+  "calm, later",
+  "glancing hit, 1.5 s",
+  "after the hit, 5.5 s",
+  "opto left 0.3",
+  "opto left 0.6",
+  "opto left 1.0",
+  "calm",
+  "calm, later",
+  "glancing hit, 1.5 s",
+  "after the hit, 5.5 s",
+  "opto left 0.3",
+  "opto left 0.6",
+  "opto left 1.0",
+  "calm",
+  "calm, later",
+  "glancing hit, 1.5 s",
+  "after the hit, 5.5 s",
+  "opto left 0.3",
+  "opto left 0.6",
+  "opto left 1.0"
+ ],
+ "tok_s_readout_on": 47.0,
+ "tok_s_readout_off": 57.8,
+ "reply_z_sd": {
+  "approach": 0.099,
+  "avoid": 0.147,
+  "freeze": 0.146
+ },
+ "calibrated": "2026-10-08 22:10",
+ "wall_s": 106.7
+}

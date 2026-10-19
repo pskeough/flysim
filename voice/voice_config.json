@@ -1,0 +1,19 @@
+{
+  "engine": "kokoro",
+  "kokoro_voice": "am_puck",
+  "kokoro_threads": 2,
+  "_engine_note": "engine: kokoro (Kokoro-82M on the CPU, the default) or qwen (Qwen3-TTS VoiceDesign through audio.cpp on the GPU, optional, uses 'voice'). Switch in the app's Settings tab; the choice is saved here.",
+  "voice": "low_dramatic",
+  "_voice_note": "Qwen3-TTS only: a voice name from voice/designs/round1_samples.json or round2_samples.json: whisper child eerie nervous old rasp innocent synthetic low chitter whisper_pitchup rasp_buzz | low_buzz low_shift low_insect low_dramatic low_fly_dramatic chitin_ring.",
+  "port": 8097,
+  "engine_port": 8098,
+  "engine_backend": "cuda",
+  "engine_threads": 2,
+  "seed": 1234,
+  "ui_default_on": false,
+  "_ui_note": "false (default): the voice stays off until switched on in Settings or the Mind tab. true: the page switches it on by itself when this server is running.",
+  "stt_model": "small.en",
+  "stt_device": "cpu",
+  "_stt_note": "cpu (default, int8, 2 threads) or auto (CUDA when the card in FLY_VOICE_GPU has stt_min_free_mb free; needs the CUDA 12 cuBLAS and cuDNN 9 DLLs that faster-whisper's CTranslate2 loads).",
+  "stt_min_free_mb": 1500
+}

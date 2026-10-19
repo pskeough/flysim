@@ -1,0 +1,90 @@
+/* ==========================================================================================================
+   Left panel + main viewport layout (Brain column on: body.dock). Loaded after index.html's own <style>, so these
+   rules win over the old 25% / 25% dock (which left an empty, undrawn canvas between the world and the side panel).
+
+   The left panel is one column at the stage's edge, width --lw, split at --lsplit:
+     top     #brainView  the fly's connectome (live point cloud), legend + "N firing now" read-out
+     bottom  #llmDock    the AI's brain: 36 layer rings drawn by llm_column.js from the mind's real per-token frames
+   The world view (#worldView) takes everything else up to the right panel. Both grips are made by left_panel.js;
+   the sizes persist in localStorage ('flysim.leftpanel'). Shift+N docks it on the right instead (body.dockr).
+   ========================================================================================================== */
+:root { --lw: 380px; --lsplit: 50%; --lpbg: #05070a; }
+
+/* ---- geometry ---------------------------------------------------------------------------------------- */
+body.dock .view.pip { top: 0; left: 0; right: auto; bottom: auto; width: var(--lw); height: var(--lsplit); aspect-ratio: auto;
+  border: 0; border-radius: 0; box-shadow: none; border-right: 1px solid var(--line); background: var(--lpbg); z-index: 12; }
+body.dock #llmDock { display: block; position: absolute; top: var(--lsplit); left: 0; right: auto; bottom: auto;
+  width: var(--lw); height: calc(100% - var(--lsplit)); z-index: 12; background: var(--lpbg);
+  border: 0; border-right: 1px solid var(--line); border-top: 1px solid var(--line); }
+body.dock .view.main { left: var(--lw); right: 0; top: 0; bottom: 0; }
+
+body.dock.dockr .view.pip, body.dock.dockr #llmDock { left: auto; right: 0; border-right: 0; border-left: 1px solid var(--line); }
+body.dock.dockr .view.main { left: 0; right: var(--lw); }
+
+/* presentation mode (Shift+P) frames the world 16:9 when it is alone; beside the left panel it fills its space */
+body.present.dock .view.main { margin: 0; width: auto; height: auto; inset: 0 0 0 var(--lw); }
+body.present.dock.dockr .view.main { inset: 0 var(--lw) 0 0; }
+
+/* overlays that belong to the world view but sit on the stage: keep them off the left panel */
+body.dock #hud { left: calc(var(--lw) + 12px); }
+body.dock.dockr #hud { left: 12px; }
+body.dock.dockr #keyBtn, body.dock.dockr #keyHelp { right: calc(var(--lw) + 12px); }
+body.dock #banners { left: calc(var(--lw) + 110px); right: 16px; }
+body.dock.dockr #banners { left: 110px; right: calc(var(--lw) + 16px); }
+body.present.dock #banners { left: calc(var(--lw) + 16px); }
+body.dock #vapour { left: var(--lw); }
+body.dock.dockr #vapour { left: 0; right: var(--lw); }
+body.dock #deathCard { left: calc(var(--lw) + (100% - var(--lw)) / 2); }
+body.dock.dockr #deathCard { left: calc((100% - var(--lw)) / 2); }
+
+/* ---- grips ------------------------------------------------------------------------------------------- */
+#lpGrip, #lpSplit { display: none; position: absolute; z-index: 14; touch-action: none; }
+body.dock #lpGrip, body.dock #lpSplit { display: block; }
+body.cine #lpGrip, body.cine #lpSplit { display: none; }
+#lpGrip { top: 0; bottom: 0; left: calc(var(--lw) - 4px); width: 8px; cursor: col-resize; }
+body.dock.dockr #lpGrip { left: auto; right: calc(var(--lw) - 4px); }
+#lpSplit { left: 0; width: var(--lw); top: calc(var(--lsplit) - 4px); height: 8px; cursor: row-resize; }
+body.dock.dockr #lpSplit { left: auto; right: 0; }
+#lpGrip::after { content: ""; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px; background: transparent; transition: background .15s; }
+#lpSplit::after { content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 2px; background: transparent; transition: background .15s; }
+#lpGrip:hover::after, #lpGrip.drag::after, #lpSplit:hover::after, #lpSplit.drag::after { background: var(--accent); }
+/* a small pill in the middle of each grip, visible on hover, so the handle can be found */
+#lpGrip::before, #lpSplit::before { content: ""; position: absolute; border-radius: 3px; background: var(--line2); opacity: 0; transition: opacity .15s; }
+#lpGrip::before { left: 2px; top: calc(50% - 18px); width: 4px; height: 36px; }
+#lpSplit::before { top: 2px; left: calc(50% - 18px); height: 4px; width: 36px; }
+#lpGrip:hover::before, #lpSplit:hover::before { opacity: 1; }
+body.lpdrag, body.lpdrag * { user-select: none !important; }
+body.lpdrag.lpcol, body.lpdrag.lpcol * { cursor: col-resize !important; }
+body.lpdrag.lprow, body.lpdrag.lprow * { cursor: row-resize !important; }
+
+/* ---- top half: the fly's brain ------------------------------------------------------------------------ */
+body.dock .view.pip .pipbar { display: flex; padding: 9px 8px 16px 12px; background: linear-gradient(rgba(5,7,10,.92), rgba(5,7,10,0)); }
+body.dock .view.pip .pipbar span { font: 600 10.5px var(--sans); letter-spacing: .14em; color: var(--faint); }
+body.dock .view.pip .pipbar button { width: 22px; height: 20px; }
+
+body.dock .view.pip #legend { display: flex !important; flex-wrap: wrap; gap: 1px 12px; top: 31px; left: 12px; right: 12px;
+  font-size: 11px; line-height: 1.55; color: var(--dim); z-index: 3; pointer-events: auto; }
+body.dock .view.pip #legend div { gap: 3px; }
+body.dock .view.pip #legend div i:last-of-type { margin-right: 2px; }
+body.dock .view.pip #legend i { width: 7px; height: 7px; }
+
+body.dock .view.pip #brainRead { display: block !important; top: auto; left: 0; right: 0; bottom: 0; width: auto; z-index: 3;
+  padding: 18px 12px 10px; border: 0; border-radius: 0; font-size: 11.5px; color: var(--dim);
+  background: linear-gradient(rgba(5,7,10,0), rgba(5,7,10,.88) 26%); }
+body.dock .view.pip #brainRead .big { font-size: 12.5px; margin-bottom: 5px; color: var(--dim); }
+body.dock .view.pip #brainRead .big b { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+body.dock .view.pip #brainRead .br { grid-template-columns: 96px 1fr 46px; gap: 8px; margin-top: 3px; }
+body.dock .view.pip #brainRead .br i { height: 5px; border-radius: 3px; background: rgba(255,255,255,.08); }
+body.dock .view.pip #brainRead .br i b { border-radius: 3px; }
+body.dock .view.pip #brainRead .br em { font-size: 10.5px; color: var(--faint); }
+
+/* group labels: only while the group fires (the legend names the colours), so the cloud is not covered in text */
+body.dock .view.pip .lbl { font-size: 10.5px; padding: 0 4px; opacity: 0; transition: opacity .35s; }
+body.dock .view.pip .lbl.hot { opacity: 1; transition: opacity .06s; }
+body.dock .view.pip #brainDrug { top: auto; left: 12px; bottom: 92px; font-size: 10.5px; line-height: 1.45; z-index: 3; }
+body.dock .view.pip #brainPain { right: 12px; bottom: 92px; font-size: 10.5px; line-height: 1.45; z-index: 3; }
+
+/* a short panel: drop the per-signal bars first, then the legend, so the brain keeps its room */
+body.dock.lp-short .view.pip #brainRead .br { display: none; }
+body.dock.lp-short .view.pip #brainRead { padding-bottom: 8px; }
+body.dock.lp-tiny .view.pip #legend { display: none !important; }

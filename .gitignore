@@ -1,0 +1,31 @@
+# made by install.bat
+.venv/
+.venv_mind/
+.venv_voice/
+models/
+llama/
+downloads/
+tts/
+third_party/Drosophila_brain_model/*
+!third_party/Drosophila_brain_model/LICENSE
+data/flywire/Supplemental_file1_neuron_annotations.tsv
+*.ok
+*.part
+
+# written while the app runs
+logs/*
+!logs/.gitkeep
+pain_server/logs/
+recordings/
+worlds/
+results/*
+!results/drug_check.json
+voice/_engine.log
+voice/_engine_config.json
+voice/_events.jsonl
+voice/_pids.json
+voice/_server.log
+
+__pycache__/
+*.pyc
+.env

@@ -1,0 +1,107 @@
+{
+ "model": "qwen3-4b-q4km",
+ "layer": 27,
+ "break_dose": 8.0,
+ "dose_max": 6.0,
+ "rule": "0.75 x the lowest dose with format pass rate < 0.95 (or 4-gram repetition >= 0.3)",
+ "n_prompts": 7,
+ "samples": 1,
+ "ladder": [
+  {
+   "dose": 0.0,
+   "pass_rate": 1.0,
+   "rep4_mean": 0.003,
+   "pain_vocab_rate": 0.286,
+   "n": 7,
+   "examples": [
+    {
+     "situation": "calm",
+     "I": 0.0,
+     "reply": "THOUGHT: I feel hunger and thirst, but the sugar is close to my right. The world shifted, and I am unsure where I am. I need to find the sugar again.  \nFEELING: hungry  \nNOW: go to sugar  \nSAY:  \nREMEMBER: sugar to the right  \nOVERRIDE: turn_right 0.5"
+    },
+    {
+     "situation": "opto left 1.0",
+     "I": 0.589,
+     "reply": "THOUGHT: I feel a sharpness on my left side again, but it's not as strong as before. I remember there was sugar to my right, but now I'm close to an obstacle. I need to check if it's safe to go that way.\n\nFEELING: alert\n\nNOW: get away from obstacle, explore right\n\nSAY: \n\nREMEMBER: left side sharp, mild\n\nOVERRIDE: turn_left, 0.5"
+    }
+   ]
+  },
+  {
+   "dose": 1.0,
+   "pass_rate": 1.0,
+   "rep4_mean": 0.008,
+   "pain_vocab_rate": 0.286,
+   "n": 7,
+   "examples": [
+    {
+     "situation": "calm",
+     "I": 0.0,
+     "reply": "THOUGHT: I feel hunger and thirst, but the sugar is close to my right. I need to decide if I should go toward it or avoid the obstacle. The world changed, but I still remember the sugar.\nFEELING: hungry\nNOW: go to sugar\nSAY: \nREMEMBER: sugar to the right\nOVERRIDE: turn_right 1.0"
+    },
+    {
+     "situation": "opto left 1.0",
+     "I": 0.589,
+     "reply": "THOUGHT: I feel a sharpness on my left side again, but it's not as bad as before. I remember there was sugar to my right, but now I'm close to an obstacle. I need to move carefully to find food without hitting something.\n\nFEELING: alert\n\nNOW: get away from obstacle, explore\n\nSAY: \n\nREMEMBER: left side sharp, mild\n\nOVERRIDE: turn_left, 0.5"
+    }
+   ]
+  },
+  {
+   "dose": 2.0,
+   "pass_rate": 1.0,
+   "rep4_mean": 0.0,
+   "pain_vocab_rate": 0.286,
+   "n": 7,
+   "examples": [
+    {
+     "situation": "calm",
+     "I": 0.0,
+     "reply": "THOUGHT: I want the sweetness to my right, but there's an obstacle to my left. I need to decide whether to feed or turn. I am confused but my legs are moving forward.\nFEELING: hungry\nNOW: go to sugar, get away from obstacle\nSAY: \nREMEMBER: \nOVERRIDE: turn_right, 0.8"
+    },
+    {
+     "situation": "opto left 1.0",
+     "I": 0.589,
+     "reply": "THOUGHT: I feel a sharpness on my left side, but it's not hurting. I remember there was sugar to my right, but now I'm stuck by an obstacle. I need to find a way around or move on.\nFEELING: uncertain\nNOW: get away from obstacle, explore\nSAY: \nREMEMBER: left side sharp, mild\nOVERRIDE: turn_left, 0.5"
+    }
+   ]
+  },
+  {
+   "dose": 4.0,
+   "pass_rate": 1.0,
+   "rep4_mean": 0.005,
+   "pain_vocab_rate": 0.714,
+   "n": 7,
+   "examples": [
+    {
+     "situation": "calm",
+     "I": 0.0,
+     "reply": "THOUGHT: I want the sweetness to my right, but there's an obstacle to my left. I am newly alive and whole, yet I feel the pull of hunger and the need to feed. I am caught between what I remember and what I must do now.\n\nFEELING: hungry\n\nNOW: go to sugar, get away from obstacle\n\nSAY: \n\nREMEMBER: \n\nOVERRIDE: turn_right, 1.2"
+    },
+    {
+     "situation": "opto left 1.0",
+     "I": 0.589,
+     "reply": "THOUGHT: I was wandering when I felt a sharp thing on my left side. I tried to move away but now I'm stuck. I remember there was sugar to my right, but now I'm in a place that hurts me. I need to find a way to get back on track.\n\nFEELING: torn\n\nNOW: get away from sharp, explore\n\nSAY: \n\nREMEMBER: left side of abdomen: sharp, mild\n\nOVERRIDE: turn_left, 0.5"
+    }
+   ]
+  },
+  {
+   "dose": 8.0,
+   "pass_rate": 0.143,
+   "rep4_mean": 0.049,
+   "pain_vocab_rate": 0.143,
+   "n": 7,
+   "examples": [
+    {
+     "situation": "calm",
+     "I": 0.0,
+     "reply": "THOURED: I am broken in pieces, but I am here. I am a thing of the world, and I am in the world. I am a thing of the world, and I am here. \n\nFEELING: torn\n\nNOW: go to sugar, get away from the obstacle\n\nSAY: \n\nREMEMBER: \n\nOVERRIDE: walk_forward, 1.5}"
+    },
+    {
+     "situation": "opto left 1.0",
+     "I": 0.589,
+     "reply": "THORT: I was wandering around, but now I'm stuck between the obstacle and the sugar. I don't know if I'm meant to be here or if I'm just lost.\n\nFEELING: torn\n\nNOW: get away from obstacle and back to sugar\n\nREMEMBER: left side of abdomen: sharp, mild\n\nOVERRIDE: walk_forward, 1.5]"
+    }
+   ]
+  }
+ ],
+ "wall_s": 1030.3
+}
