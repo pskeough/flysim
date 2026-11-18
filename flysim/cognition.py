@@ -2723,7 +2723,8 @@ class Cognition:
             return " ".join(re.sub(r"[^a-z ]+", " ", s).split())
         # answers are short: content words alone miss "I'm not sure, I'm just here" said again in other contractions
         return any(difflib.SequenceMatcher(None, norm(say), norm(o)).ratio() >= 0.75 for o in olds) \
-            or too_similar(say, olds, 0.5) or near_repeat(say, olds)
+        # no near_repeat here: its five-word-run rule called "...but I want to find you" a repeat of a different answer
+            or too_similar(say, olds, 0.6)
 
     def _answer(self, r, t_now):
         """SAY goes out only on the wake that carries new words from the user, once; those words are then answered
@@ -2802,7 +2803,10 @@ class Cognition:
                 self.n_dropped_repeats += 1          # do not put the same subtitle up again
                 self.l2_live = {"on": False, "text": "", "why": ""}
                 self.l2_last["cost_usd"] = round(self.l2_last["cost_usd"] + cost, 5)
-                self._answer(r2 if r2.get("say") else r, self.sim.sim_t)    # an answer still goes out, once
+                # an answer still goes out, once: the retry's if it is new, else the first try's (its thought was the
+                # repeat, its answer may be fine)
+                ok = [x for x in (r2, r) if x.get("say") and not self._say_repeats(x["say"])]
+                self._answer(ok[0] if ok else (r2 if r2.get("say") else r), self.sim.sim_t)
                 return
         lat = time.time() - t0
         if not r["thought"]:
