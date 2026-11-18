@@ -13,11 +13,11 @@ Everything runs on your own Windows PC. No account or API key is needed.
 | Part | What it is | Where |
 |---|---|---|
 | Brain | A leaky integrate-and-fire model of all 138,639 neurons of the FlyWire v783 connectome, with the equations and constants of Shiu et al. 2024 (*Nature*). 0.1 ms steps, run in 10 ms windows. NVIDIA Warp CUDA kernels on the GPU; numba on the CPU when there is no GPU. | `flysim/brain.py`, `flysim/brain_warp.py` |
-| Body | The flygym 2.1 FlyBody model in MuJoCo: 42 leg joints, contacts, gravity, a CPG walking controller. Descending-neuron spike rates set its forward speed and turning. Giant-fibre spikes trigger take-off. | `flysim/body.py`, `flysim/bridge.py` |
+| Body | The flygym 2.1 FlyBody model in MuJoCo: 42 leg joints, contacts, gravity, a CPG walking controller. Descending-neuron spike rates set its forward speed and turning. Giant-fibre spikes trigger take-off. Grooming descending neurons (aDN1, aDN2) above 15 Hz start an antennal grooming bout; MN9 moves the proboscis; an overturned fly rights itself in an animation. The proboscis and head poses are cosmetic; the grooming legs are real joint targets. | `flysim/body.py`, `flysim/bridge.py`, `flysim/anim.py` |
 | Senses | Looming objects drive LPLC2 and LC4, sugar and bitter drive the taste neurons, touch drives the antennal mechanoreceptors, heat and cold drive the thermosensors. Every input enters through the brain. | `flysim/autonomy.py`, `flysim/world.py` |
 | Body economy | Energy and water reserves (time-compressed: minutes, not days), body temperature with heat stupor at 41 C and chill coma at 7 C, and health. The fly dies of starvation, thirst, heat, cold, fire or being crushed. | `flysim/physiology.py` |
-| Drugs | Ethanol, nicotine, caffeine, cocaine, picrotoxin, isoflurane, octopamine and gaboxadol. Each one changes synaptic weights or resting potentials in the brain by transmitter class (ethanol, for example, strengthens GABA synapses and weakens ACh synapses), plus scripted body effects such as ataxia and knockdown. Injected, fed or breathed. | `flysim/pharma.py` |
-| Mind | Qwen3-4B (Q4_K_M) in llama.cpp. It writes a short first-person thought when something happens, and picks what the body does next. Each drive level becomes a dose of a steering vector added to the residual stream at layer 18, re-set while the thought is being written. `set FLYSIM_READOUT=on` also turns on the reverse path: a read-out of layers 11 to 18 (freeze, avoid, approach) biases the descending neurons. | `pain_server/` (port 8095) |
+| Drugs | Ethanol, nicotine, caffeine, cocaine, picrotoxin, isoflurane, octopamine and gaboxadol. Each one changes synaptic weights or resting potentials in the brain by transmitter class (ethanol, for example, strengthens GABA synapses and weakens ACh synapses), plus scripted body effects such as ataxia and knockdown. Injected, fed or breathed. Intoxication and sedation also act inside the language model while it writes: intoxication adds noise to the residual stream at layers 12, 15 and 18, and sedation scales down the residual updates of layers 12 to 20. The strengths come from `pain_server/vectors/qwen3-4b-q4km_perturb_config.json`. `set PAIN_PERTURB=0` turns this off. | `flysim/pharma.py`, `pain_server/server.py` |
+| Mind | Qwen3-4B (Q4_K_M) in llama.cpp. It writes a short first-person thought when something happens, and picks what the body does next. The motor layer defaults to bind: the chosen intent becomes leg commands from the scene's geometry, with no second model. Each drive level becomes a dose of a steering vector added to the residual stream at layer 18, re-set while the thought is being written. `set FLYSIM_READOUT=on` also turns on the reverse path: a read-out of layers 11 to 18 (freeze, avoid, approach) biases the descending neurons. | `pain_server/` (port 8095) |
 | Voice (optional) | Kokoro-82M speaks the thoughts on the CPU, with delivery set by pain, sedation and dying. Whisper small.en turns your speech into text when you hold the backquote key. | `voice/` (port 8097) |
 | Front end | A three.js page: the 3D world, the brain with every spike lit, the language model's activity, and the side panel. | `web/`, served on http://127.0.0.1:8765 |
 
@@ -75,6 +75,7 @@ The servers run in the same console window and write to `logs\`. Close that wind
 | `run.bat --cpu` | brain (numba) and mind on the CPU |
 | `run.bat --openrouter` | the mind is an online model through OpenRouter instead of the local Qwen3-4B (see below) |
 | `run.bat --no-voice` | does not start the voice server |
+| `run.bat --l1 off` | the motor layer: `bind` (the default), `off` (the fly acts alone), `rule` or `llm` |
 | `run.bat --world labyrinth` | any other argument goes to the simulator (`--world`, `--seed`, `--port`, `--no-browser`, `--memory off`) |
 
 Settings, set in the console before `run.bat` (`set NAME=value`) or once for your account (`setx NAME value`):
@@ -160,8 +161,8 @@ The voice server can also use Qwen3-TTS VoiceDesign through audio.cpp's `audiocp
 
 ```
 install.bat, run.bat      install and start (Windows)
-flysim/                   simulator: app.py (loop and web server), brain*.py, body.py, bridge.py, cognition.py (the mind's client),
-                          embodiment.py (drives), physiology.py, pharma.py, nociception.py, memory.py, world.py, worlds.py, others.py
+flysim/                   simulator: app.py (loop and web server), brain*.py, body.py, bridge.py, anim.py, cognition.py (the mind's
+                          client), embodiment.py (drives), physiology.py, pharma.py, nociception.py, memory.py, world.py, worlds.py, others.py
 web/                      the page (three.js r186 vendored in web/vendor)
 pain_server/              mind server: server.py, llama_steer.py (llama.dll via ctypes, b10435 struct offsets), drive_steer.py,
                           readout.py, vectors/ (steering vectors and calibrations for the Q4_K_M file), pyshim/

@@ -266,7 +266,8 @@ class Throttle:
         self.temperature = base_temp
         self.slur = 0.0
         if on("noise"):
-            self.temperature = round(float(min(1.6, base_temp + 0.5 * d["intoxication"] + (0.4 if seiz else 0.0))), 3)
+            self.temperature = round(float(min(1.6, base_temp + 0.25 * d["intoxication"] + (0.4 if seiz else 0.0))), 3)
+            # (0.5 x intoxication until 2026-10-24; halved when ethanol also became noise inside the model, Perturb)
             self.slur = round(0.3 * d["intoxication"], 3)
         # tempo: the floor and idle stretch between thoughts; sedation can stop wakes
         if on("tempo"):

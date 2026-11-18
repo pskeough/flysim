@@ -53,6 +53,8 @@ WINDOW_MS = 10.0
 # fraction of neurons spiking per window stays above RUNAWAY_FRAC for RUNAWAY_MS, reset membranes.
 RUNAWAY_FRAC, RUNAWAY_MS = 0.02, 300.0
 SEIZURE_MS = 3000.0   # under a drug the watchdog waits this long, so a seizure is a visible bout (then resets)
+GROOM_DN_HZ = 15.0    # aDN1/aDN2 filtered rate that starts a grooming bout (basal 0 Hz; the groom_antennae intent gives
+                      # ~40 Hz, an antenna touch ~20 Hz, eye bristles ~145 Hz: GROUNDING.md item 2) [ours]
 NO_TAKEOFF = os.environ.get("FLYSIM_NO_TAKEOFF", "0") == "1"   # a shot can keep the fly on the ground (B-roll fly-cam)
 
 
@@ -526,6 +528,7 @@ class Sim:
         seen = np.where(self.mixer.silenced, 0, counts)
         self.bridge.update(seen, WINDOW_MS)
         self.observer.update(seen, WINDOW_MS)
+        self._anim_cues(drive)
         self.runaway_ms = self.runaway_ms + WINDOW_MS if self.observer.active_frac > RUNAWAY_FRAC else 0.0
         self._pain_tick()
         with self.lock:
@@ -542,6 +545,32 @@ class Sim:
         self._touch_others()
         self.cog.tick(WINDOW_MS * 1e-3)
         return time.perf_counter() - t0
+
+    # ------------------------------------------------------------------ visible behaviour from read-outs (body.py, anim.py)
+    def _anim_cues(self, drive, dead=False):
+        """Read-outs the brain already produces, shown on the body:
+        - antennal grooming: the aDN read-outs (aDN1 = DNg62, aDN2 = DNge078; Hampel et al. 2015) above GROOM_DN_HZ on
+          a standing fly start or extend a foreleg grooming bout (body.groom_start); a walking command ends it;
+        - proboscis: MN9 (anim.FaceAnim), head yaw from the steering asymmetry and the looming side, rest pumping.
+        The cosmetic channels change only the streamed pose; the grooming legs are real position targets."""
+        b = self.body
+        if dead:
+            b.anim.cues(dead=True)
+            b.anim.tick(WINDOW_MS * 1e-3)
+            return
+        r = self.observer.rate
+        g = max(r.get("aDN1", 0.0), r.get("aDN2", 0.0))
+        if g > GROOM_DN_HZ and b.mode == "walk" and float(np.abs(drive).max()) < 0.25 and not self.pinned:
+            if b.groom_start("anterior", 0.3) and b.groom["t"] == 0.0:
+                self.events.append(f"grooming DNs {g:.0f} Hz -> antennal grooming")
+        gr = b.grooming()
+        s = self.sens
+        loom = s.get("loom_side") if (s.get("loom_angle") or 0.0) > 0.35 else None
+        still = abs(s.get("v_forward", 0.0)) < 0.3 and float(np.abs(drive).max()) < 0.05
+        b.anim.cues(mn9=r.get("MN9", 0.0), groom_side="both" if (gr and gr[0] == "anterior" and gr[1] > 0.3) else None,
+                    turn=float(np.clip(drive[1] - drive[0], -1.0, 1.0)), loom_side=loom, resting=still,
+                    seizing=bool(self.pharma.seizing), flying=b.mode == "flight")
+        b.anim.tick(WINDOW_MS * 1e-3)
 
     # ------------------------------------------------------------------ drugs (pharma.py)
     def _drug_tick(self, sens):
@@ -660,6 +689,7 @@ class Sim:
         zero = np.zeros(self.brain.n, np.uint32)
         self.bridge.update(zero, WINDOW_MS)
         self.observer.update(zero, WINDOW_MS)
+        self._anim_cues(np.zeros(2), dead=True)
         self._pain_tick(dead=True)
         with self.lock:
             self.sens = self.world.augment(self.body.sensory(), self.body)
@@ -942,6 +972,13 @@ class Sim:
 # ---------------------------------------------------------------------- server
 def make_app(sim: Sim):
     app = web.Application(client_max_size=64 * 2**20)  # snapshots are several MB of PNG
+
+    async def _no_cache(request, response):
+        # every page file revalidates: the page's modules (llm_column.js, the panels) and CSS change with app.js, and a
+        # browser that kept an old one against the new app.js draws a mix of the two
+        if request.path.endswith((".js", ".css", ".html")) or request.path == "/":
+            response.headers["Cache-Control"] = "no-cache"
+    app.on_response_prepare.append(_no_cache)
     meta, blob = sim.body.scene()
     if sim.others.cal is not None:
         meta["others"] = sim.others.cal.frames()
@@ -1357,6 +1394,33 @@ def free_port(port, tries=20):
     raise SystemExit(f"no free port in {port}..{port + tries - 1}")
 
 
+def keep_up_priority():
+    """Windows: the app's console sits behind the page while it runs or records, and Windows may run a background
+    process at low QoS (EcoQoS) or give its threads a small share when the CPU is busy (a screen recorder, another
+    job): measured 2026-10-24, the sim thread got 0.09 of a core and ran 0.08x real time while a fresh process on the
+    same loaded machine stepped the same physics at full speed. Opt out of power throttling and run above normal
+    priority. Scheduling only: the model is unchanged. FLYSIM_PRIORITY=0 leaves both alone."""
+    if os.name != "nt" or os.environ.get("FLYSIM_PRIORITY", "1") == "0":
+        return
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class _PPTS(ctypes.Structure):
+            _fields_ = [("Version", wintypes.ULONG), ("ControlMask", wintypes.ULONG), ("StateMask", wintypes.ULONG)]
+        k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        k32.GetCurrentProcess.restype = wintypes.HANDLE
+        k32.SetProcessInformation.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+        k32.SetPriorityClass.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+        h = k32.GetCurrentProcess()
+        st = _PPTS(1, 0x1 | 0x4, 0)      # ProcessPowerThrottling: EXECUTION_SPEED + IGNORE_TIMER_RESOLUTION, both off
+        ok = k32.SetProcessInformation(h, 4, ctypes.byref(st), ctypes.sizeof(st))
+        ok2 = k32.SetPriorityClass(h, 0x00008000)              # ABOVE_NORMAL_PRIORITY_CLASS
+        print(f"priority above normal: {bool(ok2)}, power throttling off: {bool(ok)}", flush=True)
+    except Exception as e:               # never stop the app over this
+        print(f"priority / QoS not set: {e!r}", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--backend", default="warp", choices=["warp", "numba", "torch"])
@@ -1369,7 +1433,7 @@ def main():
     ap.add_argument("--llm-url", default=None, help="OpenAI-compatible base URL (default $FLYSIM_LLM_URL or http://127.0.0.1:8081/v1)")
     ap.add_argument("--llm-model", default=None)
     ap.add_argument("--goal", default=None)
-    ap.add_argument("--l1", default=None, choices=["off", "rule", "llm"], help="three-level mind: motor layer mode")
+    ap.add_argument("--l1", default=None, choices=["off", "bind", "rule", "llm"], help="three-level mind: motor layer mode")
     ap.add_argument("--l2", default=None, choices=["off", "steer", "narrate", "blind"], help="three-level mind: conscious layer mode")
     ap.add_argument("--l2-model", default=None, help="OpenRouter model id for L2")
     ap.add_argument("--mind", default=None, choices=["local", "openrouter"],
@@ -1399,6 +1463,7 @@ def main():
         sim.cmds.put(("cog", cog))
     if a.world:
         sim.cmds.put(("world_load", a.world))
+    keep_up_priority()
     th = threading.Thread(target=sim.loop, daemon=True)
     th.start()
     url = f"http://127.0.0.1:{a.port}/"

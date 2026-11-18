@@ -18,7 +18,8 @@ const MONO = 'ui-monospace, "Cascadia Mono", Consolas, monospace';
 const C = { text: '#e8ecf1', dim: '#a3adb9', faint: '#6f7a87', line: '#1c242e', line2: '#28323e', bg: '#05070a', cool: '#5FB4E5' };
 // drive colours: the four feelings are app.js FEEL's (passed in); the other steering drives get their own
 const EXTRA = { thirst: { label: 'Thirst', col: '#4FD8C4' }, cold: { label: 'Cold', col: '#A9C7FF' },
-  arousal: { label: 'Alert', col: '#C792FF' }, fatigue: { label: 'Fatigue', col: '#B8A1E3' }, sedation: { label: 'Sedation', col: '#8FB8FF' } };
+  arousal: { label: 'Alert', col: '#C792FF' }, fatigue: { label: 'Fatigue', col: '#B8A1E3' }, sedation: { label: 'Sedation', col: '#8FB8FF' },
+  intoxication: { label: 'Drunk', col: '#E3B341' } };
 
 const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 const sprites = new Map();
@@ -94,7 +95,9 @@ export function drawLLMColumn(canvas, S) {
   const dim = 1 - 0.7 * Math.max(S.sed || 0, S.dead || 0);
   const lv = levels(S, dt), active = Object.keys(lv).filter(k => lv[k] > 0.04).sort((p, q) => lv[q] - lv[p]);
   if (active[0]) ST.lastK = active[0];
-  const fk = active[0] || ST.lastK, col = fk ? info(S, fk).col : C.dim;
+  // a drug written into the layers (llama_steer.Perturb, server.py meta.perturb) colours the twin difference too
+  const pm = LLM.meta && LLM.meta.perturb, pk = pm ? (pm.noise ? 'intoxication' : 'sedation') : '';
+  const fk = active[0] || pk || ST.lastK, col = fk ? info(S, fk).col : C.dim;
   const twin = !!LLM.dShow, idle = LLM.idleT ? (now - LLM.idleT) / 1000 : 99;
 
   // ---- header
@@ -108,9 +111,18 @@ export function drawLLMColumn(canvas, S) {
   g.fillStyle = stCol; g.globalAlpha = thinking ? pul : 0.7; g.beginPath(); g.arc(w - pad - sw - 8, 18, 3, 0, 7); g.fill(); g.globalAlpha = 1;
   if (!compact) text(g, clip(g, `${model ? model + ' · ' : ''}${nl} layers · ${d} units drawn per layer`, w - 2 * pad), pad, 36, `400 10.5px ${SANS}`, C.faint);
 
-  // ---- the resting form (every unit, faint)
-  g.fillStyle = 'rgba(120,132,150,1)';
-  for (let k = 0; k < nl * d; k++) { g.globalAlpha = (0.13 + 0.22 * dep[k]) * dim; g.fillRect(xs[k] - 0.75, ys[k] - 0.75, 1.5, 1.5); }
+  // ---- the resting form (every unit, faint): drawn once per size and dimming into a cached layer, then copied
+  // (3,456 fillRects a frame were most of this panel's cost)
+  const dq = Math.round(dim * 20) / 20;
+  if (!ST.rest || ST.rest.geo !== G || ST.rest.dq !== dq || ST.rest.dpr !== dpr) {
+    const cv = ST.rest ? ST.rest.cv : document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const rg = cv.getContext('2d'); rg.setTransform(dpr, 0, 0, dpr, 0, 0); rg.clearRect(0, 0, w, h);
+    rg.fillStyle = 'rgba(120,132,150,1)';
+    for (let k = 0; k < nl * d; k++) { rg.globalAlpha = (0.13 + 0.22 * dep[k]) * dq; rg.fillRect(xs[k] - 0.75, ys[k] - 0.75, 1.5, 1.5); }
+    ST.rest = { cv, geo: G, dq, dpr };
+  }
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(ST.rest.cv, 0, 0); g.restore();
   g.globalAlpha = 1;
 
   // ---- the token sweep: each generated token runs bottom to top over its slot (real token timing, no values)
@@ -127,12 +139,20 @@ export function drawLLMColumn(canvas, S) {
     }
   }
 
-  // ---- grey: the model's own activity on this token
+  // ---- grey: the model's own activity on this token (kept soft: its overall shape barely moves token to token)
   const act = LLM.act, sg = sprite(GREY);
   if (act && act.length === nl * d) for (let k = 0; k < nl * d; k++) {
     const v = act[k]; if (v < 0.35) continue;
-    const a = Math.min(1, (0.08 + 1.2 * (v - 0.35))) * (0.5 + 0.5 * dep[k]) * dim, r = 2.2 + 2.4 * v;
+    const a = 0.6 * Math.min(1, (0.08 + 1.2 * (v - 0.35))) * (0.5 + 0.5 * dep[k]) * dim, r = 2.2 + 2.4 * v;
     g.globalAlpha = a; g.drawImage(sg, xs[k] - r, ys[k] - r, 2 * r, 2 * r);
+  }
+  // ---- cool: the units that changed on this word (LLM.flash: |this frame - the last one|, decaying), so each
+  // word lights its own scatter of units instead of the same vase every time
+  const fl = LLM.flash, sk = sprite(C.cool);
+  if (fl && fl.length === nl * d) for (let k = 0; k < nl * d; k++) {
+    const v = fl[k]; if (v < 0.08) continue;
+    const a = 0.75 * Math.min(1, 0.15 + v) * (0.5 + 0.5 * dep[k]) * dim, r = 1.6 + 2.4 * v;
+    g.globalAlpha = a; g.drawImage(sk, xs[k] - r, ys[k] - r, 2 * r, 2 * r);
   }
 
   // ---- colour: what the fly's feelings changed (layers from the steering layer up)
@@ -141,8 +161,9 @@ export function drawLLMColumn(canvas, S) {
     mode = 'twin';
     const sc = sprite(col), sf = Math.min(1, Math.max(0, (now - (LLM.sweepT || 0)) / slot));
     const fade = thinking ? 1 : Math.max(0.4, Math.exp(-idle / 6));
-    for (let L = sl; L < nl; L++) {
-      const s = Math.min(1, Math.max(0, (sf - 0.6 * (L - sl) / Math.max(1, nl - sl)) / 0.15)), e = s * s * (3 - 2 * s);
+    const L0c = pm ? Math.max(0, Math.min(sl, pm.lo | 0)) : sl;       // colour from the lowest layer anything was written to
+    for (let L = L0c; L < nl; L++) {
+      const s = Math.min(1, Math.max(0, (sf - 0.6 * (L - L0c) / Math.max(1, nl - L0c)) / 0.15)), e = s * s * (3 - 2 * s);
       for (let i = 0; i < d; i++) {
         const k = L * d + i, v = ((LLM.dPrev ? LLM.dPrev[k] : 0) * (1 - e) + LLM.dShow[k] * e) * fade;
         if (!(v > 0.1)) continue;
@@ -213,15 +234,33 @@ export function drawLLMColumn(canvas, S) {
     g.fillStyle = it.col; g.fillRect(x + 12, fy + 13, tw * Math.min(1, lv[k]), 2);
     x += 12 + tw + 14;
   }
+  // drugs reach the mind inside the model (noise / damped layers, pm = server meta.perturb) and from outside it
+  // (sampling, memory, pace, slurred words): said on its own line, with the numbers in force
+  const EB = cg && cg.embody, dr = (EB && EB.drives) || {}, T = EB && EB.throttle;
+  const intox = +dr.intoxication || 0, sedv = +dr.sedation || 0;
+  if (T && (intox > 0.05 || sedv > 0.05)) {
+    const bits = [];
+    if (pm && pm.noise) bits.push(`noise in layers ${Object.keys(pm.noise).join(', ')}`);
+    if (pm && pm.gain) bits.push(`layers ${pm.gain[0]}-${pm.gain[1]} damped to ${Math.round(100 * pm.gain[2])}%`);
+    if (T.temperature > 0.95) bits.push(`hotter sampling ${T.temperature.toFixed(2)}`);
+    if (T.slur > 0) bits.push('slurred words');
+    if (T.capacity < 0.95) bits.push(`memory ${Math.round(100 * T.capacity)}%`);
+    if (T.tempo > 1.05) bits.push(T.suppress ? 'too sedated to think' : `thinks ×${T.tempo.toFixed(1)} slower`);
+    const lab = intox >= sedv ? 'Drunk' : 'Sedated', dc = intox >= sedv ? '#E3B341' : '#8FB8FF';
+    g.font = `600 11px ${SANS}`; const lw = g.measureText(lab).width;
+    text(g, lab, pad, fy + 22, `600 11px ${SANS}`, dc);
+    text(g, clip(g, (bits.join(' · ') || 'barely') + (pm ? ' (inside and outside the model)' : ' (from outside the model)'), w - 2 * pad - lw - 8), pad + lw + 8, fy + 22, `400 10.5px ${SANS}`, C.dim);
+  }
   if (!compact) {
-    const note = mode === 'twin' ? 'Grey: its own activity. Colour: measured change vs the same words without the feelings.'
+    const note = mode === 'twin' ? 'Grey: its own activity. Blue: what changed on this word. Colour: change vs the same words without the feelings.'
       : mode === 'dose' ? 'Colour: the dose pushed in at layer ' + sl + ' (per-layer change not measured yet).'
       : mode === 'off' ? 'The mind is asleep. Wake it to watch the AI think.'
-      : 'Grey: its own activity. Colour appears where the fly’s feelings change it.';
+      : 'Grey: its own activity. Blue: what changed on this word. Colour appears where the fly’s feelings change it.';
     g.font = `400 10.5px ${SANS}`;
     const lines = []; let line = '';
     for (const wd of note.split(' ')) { const t = line ? line + ' ' + wd : wd; if (g.measureText(t).width > w - 2 * pad && line) { lines.push(line); line = wd; } else line = t; }
     if (line) lines.push(line);
-    lines.slice(0, 2).forEach((l, j) => text(g, l, pad, fy + 28 + j * 14, `400 10.5px ${SANS}`, C.faint));
+    const drugRow = !!(T && (intox > 0.05 || sedv > 0.05));          // the drug line takes the first note row
+    lines.slice(0, drugRow ? 1 : 2).forEach((l, j) => text(g, l, pad, fy + (drugRow ? 40 : 28) + j * 14, `400 10.5px ${SANS}`, C.faint));
   }
 }

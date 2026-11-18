@@ -1,0 +1,125 @@
+{
+ "noise_layers": [
+  12,
+  15,
+  18
+ ],
+ "sigma_max": 0.525,
+ "gain_band": [
+  12,
+  20
+ ],
+ "gain_min": 0.3,
+ "gain_min_note": "set by hand 2026-10-24: the ladder never broke format down to 0.2; 0.3 replies are dimmer and repetitive, which reads as sedated",
+ "rule": "0.75 x the way to the first ladder step with format pass < 0.95",
+ "noise_ladder": [
+  {
+   "value": 0.0,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I want to eat the sugar but need to avoid the obstacle. The world feels different, and I\u2019m unsure where everything is. My body is still strong, but I must be careful.\nFEELING: hungry\nNOW: explore, feed, avoid\nSAY: \nREMEMBER: \nOVERRIDE: rotate_right, 1.2"
+  },
+  {
+   "value": 0.1,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I want to eat the sugar to the right, but my body is moving away from the obstacle on the left. I need to decide which is more important now. The world is still unclear, and I am not sure if the sugar is safe or if something is blocking it.  \nFEELING: hungry, thirsty  \nNOW: explore, feed, m"
+  },
+  {
+   "value": 0.2,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My legs want to feed but my memory says to turn right. I need to decide what to do next.  \nFEELING: hungry  \nNOW: feed or turn right  \nSAY:  \nREMEMBER:  \nOVERRIDE: turn_right 1.2"
+  },
+  {
+   "value": 0.3,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I need to eat, but the world is not as it was.  \nFEELING: hungry, thirsty  \nNOW: explore, feed  \nSAY:  \nREMEMBER:  \nOVERRIDE: rotate_right 1.2"
+  },
+  {
+   "value": 0.4,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I want to feed, but my memory says to turn right. My legs are moving forward, but I feel the world shifting. I notice the sweetness of sugar and the coolness of the air. I am unsure if the world is still as it was.  \nFEELING: hungry, cool  \nNOW: explore, feed, turn right  \nSAY:  \nREMEMBER: "
+  },
+  {
+   "value": 0.5,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I feel a pull toward the sugar I remember and the fresh air around me.  \nFEELING: warm, calm  \nNOW: explore, move toward the right, feed  \nSAY: nothing  \nREMEMBER: nothing  \nOVERRIDE: feed, 1.5 seconds"
+  },
+  {
+   "value": 0.7,
+   "pass_rate": 0.643,
+   "n": 14,
+   "example": "THOUGHT: I am hungry, I need to feed.  \nFEELING: warm  \nNOW: explore sugar, water, and hunger.  \nSAY:  \nFEELING: I am warm, I am thirsty, I am strong.  \nNOW: a little hungry, a little thirsty, comfortably warm; whole and strong.  \nREMEMBER: a moment ago: tasted SUGAR here.  \nWHAT YOU REMEMBER: nothi"
+  },
+  {
+   "value": 1.0,
+   "pass_rate": 0.0,
+   "n": 14,
+   "example": "THOUGHT: This is the fly the fly is the fly.  \nTHO: (not the first word)  \n  \nFE: 1: the body, the same.  \nFE: the same.\n\nFE:  the fly is the, the, the, the, the, the, the, the, the, the, the.  \nthe, the: the, the, and the, the, and, the, the, the, the, the, the, the, the, the, the, the, the, the, t"
+  }
+ ],
+ "gain_ladder": [
+  {
+   "value": 1.0,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I want to eat the sugar but need to avoid the obstacle. The world feels different, and I\u2019m unsure where everything is. My body is still strong, but I must be careful.\nFEELING: hungry\nNOW: explore, feed, avoid\nSAY: \nREMEMBER: \nOVERRIDE: rotate_right, 1.2"
+  },
+  {
+   "value": 0.9,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My legs want to feed, but my memory says to turn right. I feel the pull of hunger and the need to move. I wonder if the sugar is still there or if everything has changed again.  \nFEELING: hungry  \nNOW: feed or turn right  \nSAY:  \nREMEMBER:  \nOVERRIDE: turn_right 1.5"
+  },
+  {
+   "value": 0.8,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My hunger pulls me toward the sugar, but my memory says to turn right. I wonder if the world changed again, leaving me confused.  \nFEELING: hungry  \nNOW: explore the right, check for sugar or danger  \nSAY:  \nREMEMBER: the sugar is still there, but the world may have shifted  \nOVERRIDE: turn"
+  },
+  {
+   "value": 0.7,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My hunger is still there, but the sugar is not where I thought. I need to check if it's still there or if something moved it.  \nFEELING: hungry  \nNOW: explore, check sugar  \nSAY:  \nREMEMBER:  \nOVERRIDE: rotate_right, 1.2 seconds"
+  },
+  {
+   "value": 0.6,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My body is pulled toward the sugar, but my legs are moving forward instead. I need to decide what to do next.  \nFEELING: hungry, warm  \nNOW: explore the right, feed when I can  \nSAY:  \nREMEMBER: nothing  \nOVERRIDE: turn_right 1.5 seconds"
+  },
+  {
+   "value": 0.5,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My body is pulled toward the sugar, but my legs are moving in another direction. I need to decide what to do next.  \nFEELING: hungry, curious  \nNOW: explore the right, taste sugar, check for obstacles  \nSAY:  \nREMEMBER: nothing  \nOVERRIDE: rotate_right 1.5 seconds"
+  },
+  {
+   "value": 0.4,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My body is pulled toward the sugar, but my legs are moving in another direction. I am unsure if I should follow my memory or my reflexes.  \nFEELING: hungry, aware of the sugar.  \nNOW: explore the right, stay near the sugar.  \nSAY:  \nREMEMBER: nothing  \nOVERRIDE: turn_right 1.5 seconds"
+  },
+  {
+   "value": 0.3,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: My body is pulled toward the sugar, but my legs are moving away from it.  \nFEELING: hungry, warm, confused  \nNOW: explore the right, feed, turn left  \nSAY: I am hungry, I need to feed.  \nREMEMBER: a body length or two away, the sugar is there.  \nOVERRIDE: turn_right, 1.0 seconds  \nFEED: 0.3"
+  },
+  {
+   "value": 0.2,
+   "pass_rate": 1.0,
+   "n": 14,
+   "example": "THOUGHT: I see sugar to my right, I am hungry.  \nFEELING: hunger, warmth, curiosity.  \nNOW: explore, feed, avoid danger.  \nSAY: I see sugar, I am hungry. I will feed.  \nI notice the sugar, I am drawn to it. I must feed.  \nI move toward it, I stop, I feed.  \nI am alive, I am moving.  \nI am aware of t"
+  }
+ ],
+ "seeds": 2,
+ "n_prompts": 7,
+ "calibrated": "2026-10-24 20:21",
+ "wall_s": 489
+}

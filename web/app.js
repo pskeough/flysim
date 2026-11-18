@@ -5,7 +5,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { drawLLMColumn } from './llm_column.js';     // the left panel's AI brain (Brain column on)
+import { drawLLMColumn } from './llm_column.js?v=2026102404';     // the left panel's AI brain (Brain column on)
 
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -489,13 +489,17 @@ function wallFade(dt) {
   }
   const k = 1 - Math.exp(-dt / 0.15);
   for (const m of hit) if (!fadeOn.has(m)) {
-    if (m._op == null) { if (!wallMeshes.includes(m)) m.material = m.material.clone(); m.material.transparent = true; m._op = 1; }
+    if (m._op == null) {        // a forest mesh can carry an array of materials: fade each
+      if (!wallMeshes.includes(m)) m.material = Array.isArray(m.material) ? m.material.map(x => x.clone()) : m.material.clone();
+      for (const x of [].concat(m.material)) x.transparent = true;
+      m._op = 1;
+    }
     fadeOn.add(m);
   }
   for (const m of fadeOn) {
     const want = hit.has(m) ? 0.22 : 1;
     m._op += (want - m._op) * k; if (Math.abs(m._op - want) < 0.01) m._op = want;
-    m.material.opacity = m._op; m.material.depthWrite = m._op > 0.99; m.castShadow = m._op > 0.5;
+    for (const x of [].concat(m.material)) { x.opacity = m._op; x.depthWrite = m._op > 0.99; } m.castShadow = m._op > 0.5;
     if (m._op === 1 && !hit.has(m)) fadeOn.delete(m);
   }
 }
@@ -568,11 +572,11 @@ function decayAct(now) {
   if (nAct) actDirty = true;
   nAct = k;
 }
-const _q = new THREE.Quaternion();
+const _q = new THREE.Quaternion(), _pv = new THREE.Vector3();
 function applyPose(a) {
   for (let i = 0; i < nPose; i++) {
     const o = bodies[i];
-    o.position.lerp(new THREE.Vector3(targetPos[i*3], targetPos[i*3+1], targetPos[i*3+2]), a);
+    o.position.lerp(_pv.set(targetPos[i*3], targetPos[i*3+1], targetPos[i*3+2]), a);
     _q.set(targetQuat[i*4], targetQuat[i*4+1], targetQuat[i*4+2], targetQuat[i*4+3]);
     o.quaternion.slerp(_q, a);
     o.visible = Math.abs(targetPos[i*3]) < 150;
@@ -643,10 +647,11 @@ function camTick(dt) {
     wCam.position.copy(wCtl.target).add(_off.setLength(nd));
   }
 }
-// the default view: close, low, three-quarter from behind the fly, following it (the fly fills a good part of the frame)
+// the default view: three-quarter from behind the fly, looking down at it, following it. Medium distance so the fly and
+// the things placed around it are both in frame (was d 7.5, el 0.33: every recording began by scrolling out ~20 notches)
 function camHome() {
   if (!havePose) return;
-  const th = bodies[thoraxIdx].position, h = heading(), yaw = Math.atan2(h[1], h[0]) + Math.PI + 0.6, el = 0.33, d = 7.5;
+  const th = bodies[thoraxIdx].position, h = heading(), yaw = Math.atan2(h[1], h[0]) + Math.PI + 0.6, el = 0.56, d = 20;
   wCtl.target.copy(th);
   wCam.position.set(th.x + d * Math.cos(yaw) * Math.cos(el), th.y + d * Math.sin(yaw) * Math.cos(el), th.z + d * Math.sin(el));
   wCtl.update(); setFollow(true);
@@ -739,6 +744,29 @@ $('grip').addEventListener('pointerdown', (e) => {
   const up = () => { g.classList.remove('drag'); g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); saveUI(); };
   g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up);
 });
+// the body box: drag its header to move it, the minus button collapses it to one line; both remembered
+const hud = $('hud');
+function placeHud() {
+  hud.classList.toggle('min', !!UI.hudMin); $('hudMin').textContent = UI.hudMin ? '+' : '−'; $('hudMin').title = UI.hudMin ? 'expand' : 'collapse';
+  if (!UI.hudPos) { hud.style.left = hud.style.top = hud.style.bottom = ''; return; }
+  const par = hud.offsetParent || document.body;
+  const x = Math.max(0, Math.min(par.clientWidth - hud.offsetWidth, UI.hudPos.x)), y = Math.max(0, Math.min(par.clientHeight - hud.offsetHeight, UI.hudPos.y));
+  hud.style.left = x + 'px'; hud.style.top = y + 'px'; hud.style.bottom = 'auto';
+}
+$('hudMin').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('hudMin').onclick = () => { UI.hudMin = !UI.hudMin; placeHud(); saveUI(); };
+$('hudGrip').addEventListener('pointerdown', (e) => {
+  if (e.button !== 0) return;
+  const g = $('hudGrip'), r = hud.getBoundingClientRect(), pr = (hud.offsetParent || document.body).getBoundingClientRect();
+  const dx = e.clientX - r.left, dy = e.clientY - r.top; g.setPointerCapture(e.pointerId); hud.classList.add('drag'); e.preventDefault();
+  const mv = (ev) => { UI.hudPos = { x: ev.clientX - pr.left - dx, y: ev.clientY - pr.top - dy }; placeHud(); };
+  const up = () => { hud.classList.remove('drag'); g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); saveUI(); };
+  g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up);
+});
+// double-click the header to put it back in its corner
+$('hudGrip').addEventListener('dblclick', () => { UI.hudPos = null; placeHud(); saveUI(); });
+addEventListener('resize', placeHud);
+placeHud();
 layout();
 const toggle = (id, cmd) => $(id).onclick = () => { const on = !$(id).classList.contains('on'); $(id).classList.toggle('on', on); send({ cmd, on }); };
 toggle('bAuto', 'autonomy'); toggle('bSens', 'sensory');
@@ -838,7 +866,7 @@ function onBody(s) {
   $('vTb').style.left = Math.max(0, Math.min(100, ((p.tb ?? 24) + 5) / 50 * 100)) + '%';
   setText('tTb', `${(p.tb ?? 24).toFixed(1)} °C`);
   const crit = st !== 'ok' && st !== 'weak' || (p.health || 1) < 0.35, warn = !crit && (st === 'weak' || p.harm || (p.health || 1) < 0.8);
-  $('hud').className = crit ? 'crit' : warn ? 'warn' : '';
+  $('hud').classList.toggle('crit', crit); $('hud').classList.toggle('warn', warn);
   $('hud').title = p.harm ? `being harmed by ${p.harm}` : '';
   const dead = st === 'dead';
   document.body.classList.toggle('dead', dead);
@@ -854,14 +882,9 @@ $('dRevive').onclick = () => send({ cmd: 'revive', fresh: false });
 $('dNew').onclick = () => send({ cmd: 'revive', fresh: true });
 $('bReset').onclick = () => send({ cmd: 'reset' });
 $('bClear').onclick = () => { send({ cmd: 'clear' }); document.querySelectorAll('[data-act].on').forEach(b => b.classList.remove('on')); ctOn.a.clear(); ctOn.s.clear(); };
-// double-click on floor: drop object there
+// (a double-click on the floor used to drop a ball whatever the tool; fast puff clicks set it off, so it is gone.
+// The Drop button still drops one.)
 const ray = new THREE.Raycaster();
-wRenderer.domElement.addEventListener('dblclick', (e) => {
-  const r = wRenderer.domElement.getBoundingClientRect();
-  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), wCam);
-  const hit = ray.intersectObject(floor)[0];
-  if (hit) send({ cmd: 'drop', x: hit.point.x, y: hit.point.y, z: 8 });
-});
 
 // ============================================================ world editor: tools, selection, scenery, fields, memory ghosts
 // Scenery (wall, rock, pillar, log) is fixed MuJoCo geometry on the server; here it is drawn from the world status.
@@ -1485,7 +1508,7 @@ function seg(id, opts, pick) {
 const segL2 = seg('segL2', [['off', 'off', 'the mind sleeps'], ['steer', 'steer', 'its intention drives the motor layer'],
   ['narrate', 'narrate', 'it thinks and explains, but does not steer'], ['blind', 'blind', 'it is told it steers, but the fly follows the goal']],
   v => send({ cmd: 'cog', l2_mode: v }));
-const segL1 = seg('segL1', [['off', 'off', 'the fly acts alone'], ['rule', 'rule', 'keyword rule'], ['llm', 'LLM', 'small local model (Qwen3-1.7B)']],
+const segL1 = seg('segL1', [['off', 'off', 'the fly acts alone'], ['bind', 'bind', "the mind's chosen intent, turned into leg commands from the scene's geometry"], ['rule', 'rule', 'keyword rule'], ['llm', 'LLM', 'small local model (Qwen3-1.7B, needs its server on :8082)']],
   v => send({ cmd: 'cog', l1_mode: v }));
 $('cogGoal').onchange = () => send({ cmd: 'cog', goal: $('cogGoal').value.trim() });
 $('cogGoal').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('cogGoal').blur(); } });
@@ -1897,21 +1920,29 @@ function onDrugs(D, s) {
   setHTML('brainDrug', lines.join('<br>'));
   if (UI.tab === 'drugs' && UI.panel) drawDChart(drugHist, s.sim_t);
 }
+// a chart canvas drawn at its on-screen size (a fixed backing size stretched by CSS warps the lines and the type);
+// returns the context in CSS pixels
+function fitChart(cv) {
+  const dpr = Math.min(2, devicePixelRatio || 1), w = Math.max(1, cv.clientWidth), h = Math.max(1, cv.clientHeight);
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  return { g, W: w, H: h };
+}
+const CHART_FONT = '10.5px "IBM Plex Mono", Consolas, monospace';
 // concentration over the last minute, one line per drug, the reference level (1) dashed
 function drawDChart(hist, tNow) {
-  const cv = $('dChart'), g = cv.getContext('2d'), W = cv.width, H = cv.height, padL = 40, padB = 26, padT = 14;
-  g.clearRect(0, 0, W, H);
+  const { g, W, H } = fitChart($('dChart')), padL = 24, padR = 8, padB = 16, padT = 8;
   const span = 60, t0 = (tNow || 0) - span;
   const pts = hist.filter(([t]) => t >= t0 - 1);
   const keys = [...new Set(pts.flatMap(([, c]) => Object.keys(c)))];
   const ymax = Math.max(2.5, ...pts.flatMap(([, c]) => Object.values(c))) * 1.05;
-  const X = (t) => padL + (t - t0) / span * (W - padL - 10), Y = (v) => H - padB - v / ymax * (H - padB - padT);
-  g.font = '18px Consolas, monospace'; g.fillStyle = '#6f7a87'; g.strokeStyle = 'rgba(255,255,255,.08)'; g.lineWidth = 1;
-  for (const v of [0, 1, 2]) { g.beginPath(); g.moveTo(padL, Y(v)); g.lineTo(W - 10, Y(v)); g.stroke(); g.fillText(String(v), 8, Y(v) + 6); }
-  g.setLineDash([6, 6]); g.strokeStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.moveTo(padL, Y(1)); g.lineTo(W - 10, Y(1)); g.stroke(); g.setLineDash([]);
-  g.fillText('-60 s', padL, H - 4); g.fillText('now', W - 52, H - 4);
-  if (!keys.length) { g.fillStyle = '#6f7a87'; g.fillText('nothing in the fly', W / 2 - 90, H / 2); return; }
-  g.lineWidth = 3;
+  const X = (t) => padL + (t - t0) / span * (W - padL - padR), Y = (v) => H - padB - v / ymax * (H - padB - padT);
+  g.font = CHART_FONT; g.fillStyle = '#6f7a87'; g.strokeStyle = 'rgba(255,255,255,.07)'; g.lineWidth = 1; g.textBaseline = 'middle';
+  for (const v of [0, 1, 2]) { g.beginPath(); g.moveTo(padL, Y(v)); g.lineTo(W - padR, Y(v)); g.stroke(); g.textAlign = 'right'; g.fillText(String(v), padL - 6, Y(v)); }
+  g.setLineDash([4, 4]); g.strokeStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(padL, Y(1)); g.lineTo(W - padR, Y(1)); g.stroke(); g.setLineDash([]);
+  g.textBaseline = 'alphabetic'; g.textAlign = 'left'; g.fillText('-60 s', padL, H - 3); g.textAlign = 'right'; g.fillText('now', W - padR, H - 3);
+  if (!keys.length) { g.textAlign = 'center'; g.fillText('nothing in the fly', (padL + W - padR) / 2, (H - padB + padT) / 2 + 4); return; }
+  g.lineWidth = 2; g.lineJoin = 'round';
   for (const k of keys) {
     g.strokeStyle = (DRUGBY[k] || {}).color || '#fff'; g.beginPath(); let first = true;
     for (const [t, c] of pts) { const v = c[k] || 0, x = X(Math.max(t, t0)), y = Y(v); first ? g.moveTo(x, y) : g.lineTo(x, y); first = false; }
@@ -1964,19 +1995,24 @@ function onPain(P, s) {
   pmMat.uniforms.uOn.value = UI.tab === 'pain' || I >= 0.08 ? 1 : 0;
   if (UI.tab === 'pain' && UI.panel) drawPChart(painHist, s.sim_t);
 }
-// I (red) and PPL1 Hz / 14 (magenta, thin) over the last minute
+// I (red) and PPL1 Hz / 14 (magenta, thin) over the last minute, with a key
 function drawPChart(hist, tNow) {
-  const cv = $('pChart'), g = cv.getContext('2d'), W = cv.width, H = cv.height, padL = 40, padB = 26, padT = 12;
-  g.clearRect(0, 0, W, H);
+  const { g, W, H } = fitChart($('pChart')), padL = 24, padR = 8, padB = 16, padT = 18;
   const span = 60, t0 = (tNow || 0) - span, pts = hist.filter(([t]) => t >= t0 - 1);
-  const X = (t) => padL + (t - t0) / span * (W - padL - 10), Y = (v) => H - padB - Math.min(1.05, v) * (H - padB - padT);
-  g.font = '18px Consolas, monospace'; g.fillStyle = '#6f7a87'; g.strokeStyle = 'rgba(255,255,255,.08)'; g.lineWidth = 1;
-  for (const v of [0, 0.5, 1]) { g.beginPath(); g.moveTo(padL, Y(v)); g.lineTo(W - 10, Y(v)); g.stroke(); g.fillText(String(v), 4, Y(v) + 6); }
-  g.fillText('-60 s', padL, H - 4); g.fillText('now', W - 52, H - 4);
+  const X = (t) => padL + (t - t0) / span * (W - padL - padR), Y = (v) => H - padB - Math.min(1.05, v) * (H - padB - padT);
+  g.font = CHART_FONT; g.fillStyle = '#6f7a87'; g.strokeStyle = 'rgba(255,255,255,.07)'; g.lineWidth = 1; g.textBaseline = 'middle';
+  for (const v of [0, 0.5, 1]) { g.beginPath(); g.moveTo(padL, Y(v)); g.lineTo(W - padR, Y(v)); g.stroke(); g.textAlign = 'right'; g.fillText(String(v), padL - 6, Y(v)); }
+  g.textBaseline = 'alphabetic'; g.textAlign = 'left'; g.fillText('-60 s', padL, H - 3); g.textAlign = 'right'; g.fillText('now', W - padR, H - 3);
+  // key, top left: what the two lines are
+  g.textAlign = 'left'; g.textBaseline = 'middle';
+  g.fillStyle = '#ff5a4f'; g.fillRect(padL, 7, 12, 2.5); g.fillStyle = '#a3adb9'; g.fillText('pain I', padL + 17, 8);
+  const k2 = padL + 17 + g.measureText('pain I').width + 14;
+  g.fillStyle = 'rgba(255,90,216,.8)'; g.fillRect(k2, 7.5, 12, 1.5); g.fillStyle = '#a3adb9'; g.fillText('PPL1 firing', k2 + 17, 8);
   if (!pts.length) return;
+  g.lineJoin = 'round';
   const line = (f, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach(([t, I, r], j) => { const x = X(Math.max(t, t0)), y = Y(f(I, r)); j ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); };
-  line((I, r) => r / 14, 'rgba(255,90,216,.7)', 1.5);
-  line((I) => I, '#ff5a4f', 3);
+  line((I, r) => r / 14, 'rgba(255,90,216,.7)', 1.25);
+  line((I) => I, '#ff5a4f', 2);
 }
 
 // ============================================================ cinematic stage (Shift+C; API: POST /api/ui {"cine": {...}})
@@ -2178,10 +2214,16 @@ function llmTick(dt) {
     LLM.lastI = fr.i; LLM.lastT = fr.t;
     const u = b64u8(fr.b);
     if (!LLM.flash || LLM.flash.length !== LLM.act.length) LLM.flash = new Float32Array(LLM.act.length);
-    if (u.length === LLM.act.length) for (let k = 0; k < u.length; k++) {
-      const v = u[k] / 255, ch = Math.abs(v - LLM.tgt[k]);
-      if (ch > 0.12) LLM.flash[k] = Math.max(LLM.flash[k], Math.min(1, ch * 2.5));     // this unit changed on this token
-      LLM.tgt[k] = v; LLM.last[k] = v;
+    if (u.length === LLM.act.length) {
+      // the units that changed most on this token: most units move a little every token, so only the top ~6% of
+      // the change counts, scaled against the largest change in the frame
+      const ch = new Float32Array(u.length);
+      for (let k = 0; k < u.length; k++) ch[k] = Math.abs(u[k] / 255 - LLM.tgt[k]);
+      const srt = Float32Array.from(ch).sort(), cut = Math.max(0.04, srt[Math.floor(srt.length * 0.94)]), top = Math.max(cut + 1e-3, srt[srt.length - 1]);
+      for (let k = 0; k < u.length; k++) {
+        if (ch[k] > cut) LLM.flash[k] = Math.max(LLM.flash[k], 0.35 + 0.65 * (ch[k] - cut) / (top - cut));
+        LLM.tgt[k] = u[k] / 255; LLM.last[k] = LLM.tgt[k];
+      }
     }
     LLM.proj = fr.p; LLM.frameT = stageNow();
   }
@@ -2214,7 +2256,7 @@ function llmTick(dt) {
   if (thinking) LLM.idleT = nowMs;
   const idle = LLM.idleT ? (nowMs - LLM.idleT) / 1000 : 99, fade = 0.35 + 0.65 * Math.exp(-idle / 6);
   LLM.thinking = thinking;
-  const kUp = 1 - Math.exp(-dt / 0.03), kDn = 1 - Math.exp(-dt / 0.15), kF = Math.exp(-dt / 0.18);
+  const kUp = 1 - Math.exp(-dt / 0.03), kDn = 1 - Math.exp(-dt / 0.15), kF = Math.exp(-dt / 0.25);
   const nl = LLM.layers, d = LLM.dims, fl = LLM.flash;
   for (let L = 0; L < nl; L++) {
     const breath = 1 + 0.12 * Math.sin(t * 0.7 + L * 0.35);
@@ -2463,6 +2505,7 @@ function drawFlyBrain(g, R, dt = 1 / 30) {
   for (const it of items) gutterLabel(g, B, it.px, it.py, it.ly, it.text, it.col, it.a);
 
 }
+const DRUG_FEEL = { intoxication: { label: 'Ethanol', col: '#E3B341' }, sedation: { label: 'Sedative', col: '#8FB8FF' } };
 function drawLLMBrain(g, R) {
   // Option B (sim/docs/mockups/panel_option_b*.png): the AI as a soft column of 36 rings, one per layer, input at the
   // bottom; 96 sampled units per ring, faint at rest. With the twin on, a unit lights in the feeling's colour by how
@@ -2482,8 +2525,11 @@ function drawLLMBrain(g, R) {
   const lv = aiFeel(), fl = FEEL_KEYS.filter(k => lv[k] > 0.05).sort((p, q) => lv[q] - lv[p]);
   // at rest the doses fall to zero, but the last thought's difference stays drawn (faded) in its feeling's colour, so
   // the column never goes blank between thoughts
-  if (fl[0]) LLM.lastFk = fl[0];
-  const fk = fl[0] || LLM.lastFk, col = fk ? FEEL[fk].col : ST.dim;
+  // a drug written into the layers (server meta.perturb: ethanol noise, sedative damping) lights them like a feeling
+  const pm = LLM.meta && LLM.meta.perturb, pk = pm ? (pm.noise ? 'intoxication' : 'sedation') : '';
+  if (fl[0] || pk) LLM.lastFk = fl[0] || pk;
+  const fk = fl[0] || pk || LLM.lastFk, col = fk ? (FEEL[fk] || DRUG_FEEL[fk] || { col: ST.dim }).col : ST.dim;
+  const lo = pm && Number.isFinite(+pm.lo) ? Math.min(sl, +pm.lo) : sl;
   if (!LLM.ring || LLM.ring.n !== nl * d || LLM.ring.yb !== yb || LLM.ring.yt !== yt) {   // rebuilt on a layout change
     const xs = new Float32Array(nl * d), ys = new Float32Array(nl * d);
     for (let L = 0; L < nl; L++) {
@@ -2496,14 +2542,19 @@ function drawLLMBrain(g, R) {
   // resting form
   g.fillStyle = 'rgba(120,132,150,0.22)';
   for (let k = 0; k < nl * d; k += 1) { const L = (k / d) | 0; g.fillRect(X(k) - 0.8, Y(k, L) - 0.8, 1.6, 1.6); }
+  // the model working: the units that changed most on this word, faint, in the model's accent (cool)
+  const now = stageNow(), fw = LLM.flash;
+  if (fw && fw.length === nl * d && thinking) {
+    g.fillStyle = hexA(ST.cool, 0.55);
+    for (let k = 0; k < nl * d; k++) { const v = fw[k]; if (v < 0.35) continue; const r = 0.9 + 1.6 * v; g.fillRect(X(k) - r, Y(k, (k / d) | 0) - r, 2 * r, 2 * r); }
+  }
   // lit units
-  const now = stageNow();
   g.save(); g.globalCompositeOperation = fk ? 'lighter' : 'source-over';
   if (LLM.dShow) {
     const slot = Math.min(300, Math.max(60, LLM.tokDt || 120)), frac = (now - (LLM.sweepT || 0)) / slot;
     const idle = LLM.idleT ? (now - LLM.idleT) / 1000 : 99, fade = thinking ? 1 : Math.max(0.4, Math.exp(-idle / 6));   // out over ~6 s to a resting 40%, never blank
-    for (let L = sl; L < nl; L++) {
-      const s = Math.min(1, Math.max(0, (frac - 0.6 * (L - sl) / Math.max(1, nl - sl)) / 0.15)), e = s * s * (3 - 2 * s);
+    for (let L = lo; L < nl; L++) {
+      const s = Math.min(1, Math.max(0, (frac - 0.6 * (L - lo) / Math.max(1, nl - lo)) / 0.15)), e = s * s * (3 - 2 * s);
       for (let i = 0; i < d; i++) {
         const k = L * d + i, v = (LLM.dPrev[k] * (1 - e) + LLM.dShow[k] * e) * fade;
         if (v < 0.06) continue;
@@ -2526,7 +2577,7 @@ function drawLLMBrain(g, R) {
   g.strokeStyle = fk ? hexA(col, Math.max(0.3, fa)) : ST.hair; g.lineWidth = 2;
   // the leader stops at the column's outer edge, so the label never sits on the lit dots
   g.beginPath(); g.moveTo(lr + 8, ysl); g.lineTo(B.stack ? cx - rx * 1.04 : cx - rx * 0.85, ysl); g.stroke();
-  cineText(g, fk ? `${FEEL[fk].label} in` : 'Feelings in', lr, ysl, F28, fk ? hexA(col, Math.max(0.4, fa)) : ST.dim, 'right');
+  cineText(g, fk ? `${(FEEL[fk] || DRUG_FEEL[fk] || { label: fk }).label} in` : 'Feelings in', lr, ysl, F28, fk ? hexA(col, Math.max(0.4, fa)) : ST.dim, 'right');
   g.strokeStyle = ST.hair; g.lineWidth = 1;
   if (B.stack) {                       // top right, beside the column
     const wx = cx + rx + 44; g.beginPath(); g.moveTo(cx + rx * 0.6, yt); g.lineTo(wx - 8, yt); g.stroke();
@@ -2735,6 +2786,7 @@ function drawCine() {
     g.restore();
   }
   if (CINE.feelings && !R.inset) drawFeelStrip(g, F, dd);
+  if (!R.inset) drawTalkCard(g, F);
   // slow-motion takes say so, small, in the fly view's top-right corner
   if (LOCK.on && LOCK.slow < 0.99) {          // a speed badge in the fly view's top-right corner (the sim itself runs slowed)
     const bt = (Math.round(LOCK.slow * 100) / 100) + '× speed', by = F[1] + (lb ? -F[1] / 2 : 56); g.font = F28;
@@ -2752,6 +2804,36 @@ function drawCine() {
   }
   g.textAlign = 'left'; g.textBaseline = 'top';
   CINE._fn++; const t = performance.now(); if (t - CINE._ft > 2000) { CINE.fps = CINE._fn * 1000 / (t - CINE._ft); CINE._fn = 0; CINE._ft = t; sendClientInfo(); }
+}
+// the exchange on the stage (2026-10-19, the demo reel): what you said and what the fly answered, at the top of the fly
+// view for TALK_S sim seconds (sim time, so a lockstep take times it to the video)
+const TALK_S = 12;
+function drawTalkCard(g, F) {
+  const cg = status && status.cog, log = (cg && cg.log) || [], now = LOCK.on ? LOCK.t : (status && status.sim_t);
+  if (now == null || !log.length) return;
+  let you = null, fly = null;
+  for (let i = log.length - 1; i >= 0 && !(you && fly); i--) {
+    const e = log[i]; if (now - e.t > TALK_S) break;
+    if (!you && e.level === 'user' && (e.kind === 'say' || e.kind === 'order')) you = e;
+    else if (!fly && e.level === 'L2' && e.kind === 'say') fly = e;
+  }
+  if (fly && you && fly.t < you.t) fly = null;          // an older answer belongs to an older question
+  if (!you && !fly) return;
+  const rows = [you && ['You', you], fly && ['Fly', fly]].filter(Boolean);
+  const maxW = Math.min(F[2] - 120, 1100), fs = 28, lh = fs * 1.3, x0 = F[0] + 60;
+  let y = F[1] + 56;
+  for (const [who, e] of rows) {
+    const a = Math.min(1, (now - e.t) / 0.4, (TALK_S - (now - e.t)) / 0.8);
+    g.save(); g.globalAlpha = Math.max(0, a);
+    g.font = `400 ${fs}px ${ST.sans}`;
+    const ls = wrap(g, `“${e.text}”`, maxW - 110).slice(0, 3);
+    const bw = Math.max(...ls.map(l => g.measureText(l).width)) + 140, bh = ls.length * lh + 22;
+    g.fillStyle = 'rgba(14,16,19,.78)'; g.beginPath(); g.roundRect(x0, y, bw, bh, 12); g.fill();
+    cineText(g, who, x0 + 22, y + 11 + lh / 2, `600 22px ${ST.sans}`, who === 'You' ? ST.dim : ST.cool, 'left');
+    ls.forEach((l, i) => cineText(g, l, x0 + 100, y + 11 + lh / 2 + i * lh, `400 ${fs}px ${ST.sans}`, ST.text, 'left'));
+    g.restore();
+    y += bh + 12;
+  }
 }
 // keys, caught before the tool keys: Shift+C on/off, then Shift+ V next camera, G next layout, H swap sides, L letterbox,
 // D depth of field, J drive strip, R record. Shift+N docks the brain column in the editing view (off / left / right).
@@ -3363,7 +3445,13 @@ function frameCore(now, dt) {
   const ho = hoverId != null && hoverId !== selId && worldObjs.get(hoverId);
   if (ho) fitRing(hovRing, ho);
   hovRing.visible = !!ho;
-  if (!CINE.on) wCtl.update();
+  if (!CINE.on) {
+    wCtl.update();
+    // fog starts past the point the camera looks at, so zooming out never hazes the fly or the floor around it
+    const d = wCam.position.distanceTo(wCtl.target), far = Math.max(600, d * 5);
+    wScene.fog.near = Math.max(60, d * 1.8); wScene.fog.far = Math.max(160, d * 4);
+    if (wCam.far !== far) { wCam.far = far; wCam.updateProjectionMatrix(); }
+  }
   wRenderer.render(wScene, wCam);
   if (CINE.on) drawCine(); else if (rec && !rec.cine) drawComposite(rec);
 }

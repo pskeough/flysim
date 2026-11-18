@@ -54,6 +54,27 @@ LIVE_MIN_TOKENS = 4            # at most one re-set per 4 tokens: each re-set co
                                # llama.cpp (experiments/cvec_overhead.py: 87 tok/s fixed, 17 re-set every token)
 DOSE_CAP = 8.0                # absolute ceiling; the working cap is dose_max = 0.75 x the measured break point
 
+# Drug perturbation inside the model (intoxication -> noise, sedation -> damped layers), written from the eval callback
+# (llama_steer.Perturb). These numbers are fallbacks: vectors/<NAME>_perturb_config.json (shipped for qwen3-4b-q4km,
+# calibrated on the same GGUF) overrides them. sigma_max is noise as a fraction of the row rms at full
+# intoxication, gain_min the residual-update gain at full sedation. Off with PAIN_PERTURB=0 or body["drug_perturb"]=false.
+PERTURB_DEFAULT = {"noise_layers": [12, 15, 18], "sigma_max": 0.35, "gain_band": [12, 20], "gain_min": 0.4}
+
+
+def perturb_from_drives(drives, cfg=None):
+    """body["drives"] (embodiment.steer_drives(): intoxication and sedation are in it, 0..1) -> a Perturb spec or None."""
+    if os.environ.get("PAIN_PERTURB", "1") == "0" or not drives:
+        return None
+    c = {**PERTURB_DEFAULT, **(cfg or {})}
+    x = float(np.clip(float(drives.get("intoxication") or 0.0), 0.0, 1.0))
+    s = float(np.clip(float(drives.get("sedation") or 0.0), 0.0, 1.0))
+    spec = {}
+    if x > 0.02:
+        spec["noise"] = {int(L): round(x * c["sigma_max"], 4) for L in c["noise_layers"]}
+    if s > 0.02:
+        spec["gain"] = (int(c["gain_band"][0]), int(c["gain_band"][1]), round(1.0 - s * (1.0 - c["gain_min"]), 4))
+    return spec or None
+
 
 class Steer:
     def __init__(self, model, device, name=NAME):
@@ -144,6 +165,10 @@ class LlamaSteerAdapter:
                 self.m.load_drives(self.ds)
         except FileNotFoundError as e:
             print(f"no drive vectors ({e}); body['drives'] ignored, pain only", flush=True)
+        try:                                   # the calibrated values, when the file is there
+            self.perturb_cfg = json.loads((HERE / "vectors" / f"{name}_perturb_config.json").read_text())
+        except (OSError, ValueError):
+            self.perturb_cfg = None
         self.doses = None                      # {drive: dose} for this call, or None = legacy pain path
         self.mask = None                       # drives allowed to steer this call (None = all)
         self.live = {"t": 0.0, "levels": {}, "n": 0}
@@ -238,10 +263,15 @@ def main():
         want_act = bool(body.get("activity")) and getattr(st.m, "act", None) is not None
         sent_meta = {"v": False}
 
+        pert = perturb_from_drives(body.get("drives"), getattr(st, "perturb_cfg", None)) if body.get("drug_perturb", True) else None
+
         def on_activity(i, q, proj):
             fr = {"i": i, "b": base64.b64encode(q).decode(), "p": proj}
             if not sent_meta["v"]:
                 fr["meta"] = st.m.act["meta"] | {"drives": st.m.act["dirs"][0] if st.m.act["dirs"] else []}
+                if pert:       # the panel starts its colour at the lowest perturbed layer and names the drug's action
+                    lo = min([*(pert.get("noise") or {}), *([pert["gain"][0]] if pert.get("gain") else [])])
+                    fr["meta"]["perturb"] = {"lo": int(lo), "noise": pert.get("noise"), "gain": pert.get("gain")}
                 sent_meta["v"] = True
             streamer.act = fr
         cancel = body.get("_cancel")
@@ -258,6 +288,12 @@ def main():
                                  on_readout=on_readout if want_ro else None, activity=want_act,
                                  on_activity=on_activity if want_act else None,
                                  on_doses=lambda i, d: setattr(streamer, "doses", {"i": i, "d": d}),
+                                 perturb=pert,
+                                 stop_after=body.get("stop_after") if body.get("stop_after") in ("NOW", "SAY") else None,
+                                 stop_tags=tuple(x for x in (body.get("stop_tags") or ()) if x in ("REMEMBER", "OVERRIDE", "SAY")),
+                                 avoid_words=tuple(str(w) for w in (body.get("avoid_words") or ())[:60]),
+                                 avoid_bias=float(body.get("avoid_bias") or 0.0),
+                                 repeat_penalty=float(body.get("repeat_penalty") or 1.0),
                                  twin=bool(body.get("twin")) and want_act,
                                  on_twin=lambda i, q, odds: setattr(streamer, "twin", {
                                      "i": i, "b": base64.b64encode(q).decode(), "odds": odds}))
@@ -352,6 +388,10 @@ def main():
                 meta["now_state"], meta["now_text"] = ls0["now_state"], ls0.get("now_text")
             if ls0.get("act_ms_per_token") is not None:
                 meta["act_ms_per_token"] = ls0["act_ms_per_token"]
+            if ls0.get("perturb_writes") is not None:
+                meta["perturb_writes"] = ls0["perturb_writes"]
+            if ls0.get("stopped"):
+                meta["stopped"] = ls0["stopped"]
             if getattr(st, "doses", None) is not None:
                 ls = st.last_stats or {}
                 tr = ls.get("trace") or []

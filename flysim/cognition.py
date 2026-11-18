@@ -775,6 +775,11 @@ MIND_SAY_POOL = (
      "Only of the burning glow."),
     ('"where are you going?"', "It wants to know my way. I do not know it myself yet.", "unsure", "explore",
      "Somewhere wet, I hope."),
+    # 2026-10-24 (experiments/mind_tune.py): casual words got stiff or parroted answers ("Hey little fly wassup? I'm here")
+    ('"hey, what\'s up?"', "The humming sounds friendly. Nothing is wrong right now, and there is sugar under my feet.",
+     "content", "stay", "Sugar, under my feet. That is what is up."),
+    ('"do you like me?"', "The humming wants something from me. I cannot like what I cannot see or taste.", "unsure",
+     "explore", "I do not know what you are. You do not burn, so that is good."),
 )
 # a thought lifted from an example ("I have been hungry for a while, so that comes first." while not hungry) is
 # resampled like a repeat
@@ -802,8 +807,9 @@ MIND_EXAMPLES_LOCAL = local_examples(0)      # the default set, for experiments 
 _SAY_RULE = "- When words reach you (the humming), answer with SAY if you want to, and let THOUGHT be about them.\n"
 _SAY_FMT = "SAY: <only when you have just been spoken to and choose to answer: one short sentence>\n"
 _SAY_LEAVE = "Leave out SAY, REMEMBER and OVERRIDE when you have nothing for them."
-_SAY_RULE_ON = ("- Words have just reached you (the humming). Answer them once, in SAY, in your own words as a fly "
-                "would; let THOUGHT be about them.\n")
+_SAY_RULE_ON = ("- Words have just reached you (the humming). Answer them once, in SAY: answer what was actually said or "
+                "asked, from what your body feels and senses right now, in a fly's plain words. Never repeat their words "
+                "back. Let THOUGHT be about them.\n")
 _SAY_FMT_ON = "SAY: <your answer to the words that just reached you: one short sentence>\n"
 
 
@@ -813,6 +819,16 @@ def say_slot(sys_, pending):
         return sys_.replace(_SAY_RULE, _SAY_RULE_ON).replace(_SAY_FMT, _SAY_FMT_ON)
     return (sys_.replace(_SAY_RULE, "").replace(_SAY_FMT, "")
             .replace(_SAY_LEAVE, "Leave out REMEMBER and OVERRIDE when you have nothing for them."))
+
+def local_format(sys_):
+    """The local 4B's reply format: no REMEMBER and no OVERRIDE. Over 193 replies on 2026-10-24 it wrote a REMEMBER line
+    every time (26% of its text, restating what it sensed, two running to max_tokens) and OVERRIDE lines naming no
+    motor intent ("OVERRIDE: explore, 1.5"); the server stops a reply that starts either (stop_tags)."""
+    sys_ = re.sub(r"REMEMBER: <[^>]*>\n", "", sys_)
+    sys_ = re.sub(r"Only in an emergency[^\n]*\nOVERRIDE: <[^\n]*\n", "", sys_)
+    return re.sub(r"Leave out [^\n]*when you have nothing for them\.", lambda m: "Write nothing after that." if "SAY" not in m.group(0)
+                  else "Leave out SAY when you have nothing for it, and write nothing after that.", sys_)
+
 
 MIND_MEMORY = """
 Your memory is not your senses. It keeps where things were when you last sensed them, and it tugs at your
@@ -913,6 +929,9 @@ def near_repeat(new, olds):
 
 
 # the things the fly can go to or flee: never biased against (its wants must stay sayable), only the phrasing round them
+# words the local 4B leans on whatever happens ("I need to check if...": 42 of 185 thoughts on 2026-10-24); always in the
+# avoid list, so the server's logit bias weighs against them from the first thought
+TIC_WORDS = ("need", "check", "careful")
 _KEEP_WORDS = set("""sugar sweet sweetness water wet bitter bitterness heat hot cold glow wall humming fly""".split())
 
 
@@ -1047,7 +1066,10 @@ def parse_mind(text):
             cur = m.group(1).upper()
             out[cur] = m.group(2).strip()
         elif cur and line.strip():
-            out[cur] = (out[cur] + " " + line.strip()).strip()
+            s = line.strip()
+            if s.isupper() and any(h.startswith(s) for h in _TAGS):
+                continue                  # a header the server stopped inside (stop_tags): not part of the section
+            out[cur] = (out[cur] + " " + s).strip()
     if not any(out.values()):
         out["THOUGHT"] = t.strip()
     ov = None
@@ -1060,6 +1082,24 @@ def parse_mind(text):
         return "" if v.lower().rstrip(".") in ("", "none", "-", "n/a", "nothing") else v[:n]
     return {"thought": sentence_case(out["THOUGHT"][:600]), "feeling": out["FEELING"][:40], "now": out["NOW"][:120],
             "say": sentence_case(opt("SAY", 240)), "remember": opt("REMEMBER", 140), "override": ov}
+
+
+def strip_echo(say, heard):
+    """A SAY that opens by repeating the words that reached the fly ("Hey little fly wassup? I'm here...") loses that
+    opening; the rest stands."""
+    h = re.sub(r"[^a-z' ]", "", heard.lower()).split()
+    w = say.split()
+    n = 0
+    while n < len(w) and n < len(h) and re.sub(r"[^a-z']", "", w[n].lower()) == h[n]:
+        n += 1
+    return " ".join(w[n:]).lstrip(" ,.?!-").strip() if n >= 2 else say
+
+
+def echoes(say, heard):
+    """True when a SAY mostly repeats the words that reached the fly (most of its words were in them)."""
+    w = lambda s: set(re.findall(r"[a-z']+", s.lower()))
+    a, b = w(say), w(heard)
+    return bool(a) and len(a & b) / len(a) >= 0.7
 
 
 def sentence_case(t):
@@ -1525,7 +1565,7 @@ class Cognition:
         self.l2_act = Actuator(sim.table, "L2")
         self.goal = "live: eat when hungry, drink when thirsty, keep away from heat, cold and bitter"
         # L1
-        self.l1_mode = os.environ.get("FLYSIM_L1", "off")          # off | rule | llm
+        self.l1_mode = os.environ.get("FLYSIM_L1", "off")          # off | bind | rule | llm
         self.l1_url = DEFAULT_L1_URL
         self.l1_model = os.environ.get("FLYSIM_L1_MODEL", "l1")
         self.l1_period = 0.35
@@ -2332,8 +2372,9 @@ class Cognition:
                                   names=", ".join(k for k in L1_MENU if k != "none"),
                                   memory=MIND_MEMORY if (mem.mode != "off" and not local) else "",
                                   voice=MIND_VOICE[bool(rv)])
-        sys_ = say_slot(sys_, bool(pend)) + (local_examples(self.l2_n_mind, pend[-1]["text"] if pend else None)
-                                             if local else "")
+        sys_ = say_slot(sys_, bool(pend))
+        if local:
+            sys_ = local_format(sys_) + local_examples(self.l2_n_mind, pend[-1]["text"] if pend else None)
         if self.intent_style == "structured":
             sys_ = (sys_.replace("NOW: <at most 8 words: go to or get away from sugar, water, bitter, heat, cold or an "
                                  "obstacle; or explore; or stay>", "NOW: <one of YOUR CHOICES FOR NOW, copied exactly>")
@@ -2448,6 +2489,10 @@ class Cognition:
                 body["avoid_words"] = list(self._avoid)
                 body["avoid_bias"] = float(os.environ.get("FLYSIM_AVOID_BIAS", "-2.0"))
             body["repeat_penalty"] = float(os.environ.get("FLYSIM_REPEAT_PENALTY", "1.08"))
+            # end the reply at its last wanted line (NOW, or SAY when words are waiting) and never let it start the
+            # sections the local format leaves out; an older server ignores both
+            body["stop_tags"] = ["REMEMBER", "OVERRIDE"]
+            body["stop_after"] = "SAY" if self._pending else "NOW"
         else:                                               # OpenRouter-only fields
             body["usage"] = {"include": True}
             if self.l2_mind_reasoning:
@@ -2589,6 +2634,11 @@ class Cognition:
         if not pend:
             return
         if r and r.get("say"):
+            r["say"] = sentence_case(strip_echo(r["say"], " ".join(x["text"] for x in pend)))
+        if r and r.get("say") and echoes(r["say"], " ".join(x["text"] for x in pend)):
+            self.log.add(t_now, "L2", "say_echo", r["say"])     # it parroted the words back ("Hey little fly wassup")
+            r["say"] = ""
+        if r and r.get("say"):
             self.talk.append({"t": round(t_now, 1), "who": "fly", "text": r["say"], "mode": "say"})
             self.log.add(t_now, "L2", "say", r["say"])
         for x in pend:
@@ -2615,7 +2665,11 @@ class Cognition:
                 self._idle_streak += 1
             self._last_body_sig = sig
         recent3 = list(self.l2_recent)[-3:]
-        self._avoid = avoid_words(recent3) if self.is_local else []
+        if self.is_local:
+            aw = avoid_words(recent3)
+            self._avoid = aw + [w for w in TIC_WORDS if w not in aw]
+        else:
+            self._avoid = []
         msgs, why = self.mind_messages(snap, items, lines, evs)
         why_s = "; ".join(why)[:160]
         self.l2_live = {"on": True, "text": "", "why": why_s}
@@ -2804,7 +2858,7 @@ class Cognition:
             for k, v in j["embody_levers"].items():
                 if k in self.embody_levers:
                     self.embody_levers[k] = bool(v)
-        if "l1_mode" in j and j["l1_mode"] in ("off", "rule", "llm"):
+        if "l1_mode" in j and j["l1_mode"] in ("off", "bind", "rule", "llm"):
             self.l1_mode = j["l1_mode"]
             if self.l1_mode == "off":
                 self.l1_act.clear()

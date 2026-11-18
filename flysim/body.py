@@ -38,7 +38,28 @@ from flygym_demo.complex_terrain import FlyBodyPreprogrammedSteps
 from flygym_demo.complex_terrain.common import dof_spec_to_jointdof
 from flygym_demo.complex_terrain.cpg_controller import get_cpg_biases
 
+from .anim import FaceAnim
+
 LEGS = ("lf", "lm", "lh", "rf", "rm", "rh")
+# grooming key poses: absolute joint angles per leg in pre.dofs_per_leg order (coxa pitch, roll, yaw, femur pitch,
+# roll, tibia, tarsus), the same on both sides (FlyBody legs are mirror-symmetric in joint space). Solved by IK on this
+# body to body-part targets (results/anim_scout_2026-10-24/s05_groom_ik.py; targets ours, by eye). The cycle runs at
+# GROOM_HZ: anterior grooming sweeps and rubs at 5.7-6.6 Hz over 18-30 C (Ravbar, Zhang & Simpson 2021, eLife,
+# doi:10.7554/eLife.71508). Antennal grooming is commanded by the aDN descending neurons (Hampel et al. 2015, eLife,
+# doi:10.7554/eLife.08758); here the bout starts on their read-out (Sim._anim_cues in app.py).
+GROOM_KEYS = {
+    "front_up": (1.063, 0.8, -1.0, 0.743, -0.857, -0.349, -0.7),       # tibia-tarsus over the antenna
+    "front_down": (0.292, 0.577, -0.667, 0.167, -0.925, -1.052, -0.435),  # swept down past the proboscis
+    "hind_fwd": (1.146, -0.13, 0.194, -0.461, 0.94, -0.498, -0.745),   # beside abdomen segment 3, over the wing
+    "hind_back": (0.067, -0.15, 0.25, -0.219, 1.0, 0.348, -0.722),     # back to segment 6
+}
+GROOM_HZ = 6.0
+GROOM_BREAK = 0.25      # |drive| above this ends a bout (a walking command wins over grooming; ours)
+# posterior grooming uses one hind leg at a time: both hind legs up tip the fly back onto its abdomen (s07)
+GROOM_KINDS = {"anterior": ((0, 3), "front_up", "front_down"), "hind_left": ((2,), "hind_fwd", "hind_back"),
+               "hind_right": ((5,), "hind_fwd", "hind_back")}
+RIGHT_S = 0.55          # self-righting duration, sim s [ours]; the sequence follows Issa et al. 2019 (Curr Biol,
+                        # doi:10.1016/j.cub.2019.06.082) loosely: legs search, the hind legs reach, the body tips over
 # the curled death pose, added to the neutral standing pose per leg DOF (rad) [ours, 2026-10-12, by eye against dead
 # flies: femur and tibia folded in, tarsi tucked under the ventral thorax near the midline]; clipped to the actuator ranges
 DEATH_REST_Z = 0.62        # thorax height lying on its back, mm [ours, by eye]
@@ -294,7 +315,13 @@ class Body:
         self.ext_loom = []                  # [(pos xyz, radius, vel xyz)]: looming things that are not pool objects
         self.ext_loom_extra = []            # the same, for flying other flies (set by the sim each window)
         self._out = np.zeros(len(self.perm))
+        self._leg_cols = np.zeros((6, 7), np.int64)        # actuator column of (leg, dof)
+        for k, p in enumerate(self.perm):
+            self._leg_cols[int(p) // 7, int(p) % 7] = k
+        self.anim = FaceAnim(self)                          # cosmetic pose layer (anim.py): streamed poses only
+        self._act_qadr = m.jnt_qposadr[m.actuator_trnid[self.act_ids, 0]]
         self.reset()
+        self.stand_z = float(self.d.qpos[self.fly_qadr + 2])   # root height of the settled standing fly (righting)
 
     # ---------------------------------------------------------------- lifecycle
     def reset(self, pos=(0.0, 0.0), heading=0.0):
@@ -314,6 +341,9 @@ class Body:
         self.push_f = np.zeros(6)
         self.t = 0.0
         self.last_drive = np.zeros(2)
+        self.groom = None
+        self.righting = None
+        self.anim.reset()
         d.ctrl[self.act_ids] = self.default_pose
         d.ctrl[self.adh_ids] = 0
         for k, p in list(self._scn_pose.items()):    # a reset puts mocap bodies back at their compiled spots
@@ -475,6 +505,8 @@ class Body:
             k = min(sub, n_steps - done)
             if self.mode == "dead" and getattr(self, "death", None) is not None:
                 self._death_tick(k * self.dt)
+            elif self.mode == "righting":
+                self._right_tick(k * self.dt)
             elif self.mode in ("limp", "dead", "held"):
                 pass                                   # the pose set by set_state holds; no gait
             elif self.mode == "walk":
@@ -483,6 +515,8 @@ class Body:
                            self.cpg_bias, 20.0, self.lut, self.neutral, self.swing_end, self.corr,
                            self.retr, self.persist, xz[self.thorax], xz[self.tarsus5], self.perm,
                            self._out, self.retraction)
+                if self.groom is not None:
+                    self._groom_overlay(cdt * k / sub, drive)
                 d.ctrl[self.act_ids] = self._out
             else:
                 self._flight_tick(drive, k * self.dt)
@@ -605,11 +639,102 @@ class Body:
         d.qpos[self.fly_qadr + 3:self.fly_qadr + 7] = [np.cos(heading / 2), 0, 0, np.sin(heading / 2)]
         d.qvel[self.fly_vadr:self.fly_vadr + 6] = 0
 
-    def right(self):
-        """Put an overturned fly back on its feet (placeholder for the self-righting reflex)."""
+    def right(self, instant=False):
+        """Put an overturned fly back on its feet. Default: the self-righting animation (_right_tick, RIGHT_S sim s);
+        instant=True: the old placement (still used when there is nothing to animate, e.g. it is already upright)."""
+        if self.mode == "righting" and not instant:
+            return                                    # already on its way up (autonomy.py asks every window)
         p = self.d.xpos[self.thorax]
         h = self.heading()
-        self.place(p[0], p[1], float(np.arctan2(h[1], h[0])))
+        up = float(self.d.xmat[self.thorax].reshape(3, 3)[2, 2])
+        if instant or up > 0.5 or self.mode in ("flight", "dead"):
+            self.place(p[0], p[1], float(np.arctan2(h[1], h[0])))
+            return
+        d = self.d
+        yaw = float(np.arctan2(h[1], h[0]))
+        self.groom = None
+        self.mode = "righting"
+        self.righting = {"t": 0.0, "T": RIGHT_S, "q0": d.qpos[self.fly_qadr + 3:self.fly_qadr + 7].copy(),
+                         "q1": np.array([np.cos(yaw / 2), 0, 0, np.sin(yaw / 2)]), "z0": float(d.qpos[self.fly_qadr + 2]),
+                         "xy": d.qpos[self.fly_qadr:self.fly_qadr + 2].copy(), "pose0": d.ctrl[self.act_ids].copy(),
+                         "ph": self.rng.uniform(0, 2 * np.pi, len(self.act_ids))}
+
+    def _right_tick(self, dt):
+        """Self-righting, kinematic like the death roll and its mirror: the legs search in the air (first ~45 %), the
+        hind legs reach forward, and the body tips back over onto its feet (smoothstep slerp of the root from its
+        overturned orientation to upright at the same heading, lifted while it turns). Amplitudes and timing ours."""
+        D, d = self.righting, self.d
+        D["t"] += dt
+        u = min(1.0, D["t"] / D["T"])
+        sm = lambda x: float(np.clip(x, 0.0, 1.0)) ** 2 * (3 - 2 * float(np.clip(x, 0.0, 1.0)))
+        pose = D["pose0"] + (self.default_pose - D["pose0"]) * sm(u / 0.5)
+        if u < 0.6:                                   # legs searching: fast, fading waves
+            pose = pose + (1.0 - u / 0.6) * 0.4 * np.sin(2 * np.pi * 7.0 * D["t"] + D["ph"])
+        if 0.25 < u < 0.8:                            # the hind legs swing forward to reach the floor
+            reach = np.sin(np.pi * (u - 0.25) / 0.55)
+            for li in (2, 5):
+                pose[self._leg_cols[li, 0]] += 0.8 * reach
+                pose[self._leg_cols[li, 5]] -= 0.5 * reach
+        d.ctrl[self.act_ids] = self._clamp_ctrl(pose)
+        s = sm((u - 0.3) / 0.55)                      # the tip-over, done at u = 0.85; then it stands still
+        q0, q1 = D["q0"], D["q1"]
+        c = float(np.dot(q0, q1))
+        if c < 0:
+            q1, c = -q1, -c
+        if c > 0.9995:
+            q = q0 + s * (q1 - q0)
+        else:
+            th = np.arccos(c)
+            q = (np.sin((1 - s) * th) * q0 + np.sin(s * th) * q1) / np.sin(th)
+        d.qpos[self.fly_qadr + 3:self.fly_qadr + 7] = q / np.linalg.norm(q)
+        d.qpos[self.fly_qadr:self.fly_qadr + 2] = D["xy"]
+        d.qpos[self.fly_qadr + 2] = D["z0"] + (self.stand_z - D["z0"]) * s + 0.5 * np.sin(np.pi * s)
+        d.qvel[self.fly_vadr:self.fly_vadr + 6] = 0
+        if u >= 1.0:
+            # release on its feet: legs exactly at the stance pose (a leg still inside the floor at release kicks the
+            # body over), root at the settled standing height, at rest
+            self.righting = None
+            self.mode = "walk"
+            d.ctrl[self.act_ids] = self.default_pose
+            d.qpos[self._act_qadr] = self.default_pose
+            d.qvel[:] = 0
+            d.qpos[self.fly_qadr + 2] = self.stand_z
+            self.mags[:] = 0.0
+
+    def groom_start(self, kind="anterior", secs=0.5):
+        """Start (or extend) a grooming bout: the grooming legs follow GROOM_KEYS at GROOM_HZ over the walking
+        controller's output, blended in and out (~60 ms). A drive above GROOM_BREAK ends it. Walk mode only."""
+        if self.mode != "walk" or kind not in GROOM_KINDS:
+            return False
+        if self.groom is not None and self.groom["kind"] == kind:
+            self.groom["T"] = max(self.groom["T"], self.groom["t"] + float(secs))
+            return True
+        if self.groom is not None and self.groom["w"] > 0.05:
+            return False                              # finish the bout in progress first
+        self.groom = {"kind": kind, "t": 0.0, "T": float(secs), "w": 0.0}
+        return True
+
+    def _groom_overlay(self, dt, drive):
+        G = self.groom
+        G["t"] += dt
+        want = 1.0 if (G["t"] < G["T"] and float(np.abs(drive).max()) < GROOM_BREAK) else 0.0
+        G["w"] += (1.0 - np.exp(-dt / 0.06)) * (want - G["w"])
+        if want == 0.0 and G["w"] < 0.02:
+            self.groom = None
+            return
+        legs, ka, kb = GROOM_KINDS[G["kind"]]
+        A, B = np.asarray(GROOM_KEYS[ka]), np.asarray(GROOM_KEYS[kb])
+        ph = 2 * np.pi * GROOM_HZ * G["t"]
+        w = G["w"]
+        for i, li in enumerate(legs):
+            a = 0.5 + 0.5 * np.sin(ph + np.pi * i)   # two legs in antiphase (the in-phase cycle rocks the body, s05)
+            cols = self._leg_cols[li]
+            self._out[cols] = (1.0 - w) * self._out[cols] + w * (B + a * (A - B))
+        self._out[:] = self._clamp_ctrl(self._out)
+
+    def grooming(self):
+        """The bout in progress as (kind, weight), or None."""
+        return None if self.groom is None else (self.groom["kind"], round(float(self.groom["w"]), 3))
 
     def _clamp_ctrl(self, c):
         """Clip position targets to the actuators' control ranges (the joint limits where they are set)."""
@@ -655,6 +780,8 @@ class Body:
         if self.mode == "flight":
             d.xfrc_applied[self.thorax] = 0              # it drops out of the air
         prev, self.mode = self.mode, state
+        self.groom = None
+        self.righting = None
         if state != "dead":
             self.death = None
         d.ctrl[self.adh_ids] = 0
@@ -747,8 +874,10 @@ class Body:
         return np.concatenate([self.fly_body_ids, self.obj_bodies])
 
     def poses(self):
+        """Streamed body poses: the physics pose with the cosmetic layer (anim.FaceAnim) on the jointless parts."""
         ids = self.pose_body_ids()
-        return np.concatenate([self.d.xpos[ids], self.d.xquat[ids]], axis=1).astype(np.float32)
+        P = np.concatenate([self.d.xpos[ids], self.d.xquat[ids]], axis=1).astype(np.float32)
+        return self.anim.apply(P)
 
     def scene(self):
         """Meshes + primitives for the front end. Returns (json_dict, binary_blob)."""

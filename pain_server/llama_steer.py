@@ -45,6 +45,10 @@ class _Batch(C.Structure):
                 ("seq_id", C.POINTER(C.POINTER(C.c_int32))), ("logits", C.POINTER(C.c_int8))]
 
 
+class _LogitBias(C.Structure):
+    _fields_ = [("token", C.c_int32), ("bias", C.c_float)]
+
+
 class _ChainParams(C.Structure):
     _fields_ = [("no_perf", C.c_bool)]
 
@@ -92,6 +96,7 @@ def _lib():
         "llama_synchronize": (None, [P]),
         "llama_model_free": (None, [P]),
         "llama_sampler_init_grammar": (P, [P, C.c_char_p, C.c_char_p]),
+        "llama_sampler_init_logit_bias": (P, [i32, i32, C.c_void_p]),
     }
     for name, (res, args) in sig.items():
         f = getattr(L, name)
@@ -112,6 +117,8 @@ def _lib():
     B.ggml_get_name.restype, B.ggml_get_name.argtypes = C.c_char_p, [C.c_void_p]
     B.ggml_backend_tensor_get.restype = None
     B.ggml_backend_tensor_get.argtypes = [C.c_void_p, C.c_void_p, C.c_size_t, C.c_size_t]
+    B.ggml_backend_tensor_set.restype = None          # perturbation write-back (Perturb); exported by ggml-base.dll
+    B.ggml_backend_tensor_set.argtypes = [C.c_void_p, C.c_void_p, C.c_size_t, C.c_size_t]
     L.ggml = G
     L.base = B
     return L
@@ -146,6 +153,62 @@ class Readout:
         self.cur, self.tokens, self.prompt_means = {}, [], {}
         self.cvec = None                       # {layer: added vector} for the correction
         self.capture_full = None               # {layer: (n_tok, d)} when set to {} (extraction)
+
+
+class Perturb:
+    """Pharmacology-style perturbation of the residual stream, written back from the eval callback (drugs, 2026-10-24).
+
+    noise  {layer: sigma}  gaussian noise added to l_out-<layer>: sigma x the row's rms x N(0, I). Ethanol as a degraded
+                           signal. Row 0 of a multi-row (prompt) decode, the attention sink with its massive activations,
+                           is left alone.
+    gain   (lo, hi, g)     residual-update gain on layers lo..hi: h'_L = h'_(L-1) + g (h_L - h'_(L-1)). g = 1 leaves the
+                           layers alone, 0 skips them. Sedation as a damped forward pass.
+    prefill                also perturb the prompt rows (default off: the prompt is read cleanly, the thought is not).
+    The state is plain Python, so it can change between tokens for free (a control vector re-set costs ~45 ms).
+    Checked on CPU (results/drug_mech_scout_2026-10-24/cb_write_probe*.py): tensor_set from the callback changes
+    the logits, a get -> set round trip changes nothing, gain 1.0 is the identity."""
+
+    POOL = 2048
+
+    def __init__(self, n_embd, seed=0):
+        self.noise, self.gain, self.prefill = {}, None, False
+        self.rng = np.random.default_rng(seed)
+        self.pool = self.rng.standard_normal((self.POOL, n_embd)).astype(np.float32)
+        self.want, self.prev, self.on, self.n_writes = {}, None, False, 0
+
+    def set(self, noise=None, gain=None, prefill=False):
+        self.noise = {int(k): float(v) for k, v in (noise or {}).items() if float(v) > 0}
+        self.gain = (int(gain[0]), int(gain[1]), float(gain[2])) if gain and float(gain[2]) < 1.0 else None
+        self.prefill = bool(prefill)
+        ls = set(self.noise)
+        if self.gain:
+            ls |= set(range(max(self.gain[0] - 1, 0), self.gain[1] + 1))   # layer lo-1 supplies the layer-lo input
+        self.want = {f"l_out-{L}".encode(): L for L in ls}
+        self.prev = None
+
+    def apply(self, L, arr):
+        """arr: (rows, d) float32 block output of layer L as computed. -> the array to write back, or None."""
+        n = arr.shape[0]
+        if n > 1 and not self.prefill:
+            self.prev = None
+            return None
+        out, g = None, self.gain
+        in_band = g is not None and g[0] - 1 <= L <= g[1]
+        if in_band and L >= g[0] and self.prev is not None and self.prev.shape == arr.shape:
+            out = self.prev + g[2] * (arr - self.prev)
+        s = self.noise.get(L)
+        if s:
+            base = arr if out is None else out
+            rms = np.sqrt((base ** 2).mean(1, keepdims=True))
+            i = int(self.rng.integers(0, self.POOL - min(n, self.POOL) + 1))
+            nz = self.pool[i:i + n] if n <= self.POOL else self.rng.standard_normal(base.shape).astype(np.float32)
+            nz = nz.copy()
+            if n > 1:
+                nz[0] = 0.0
+            out = base + s * rms * nz
+        if in_band:
+            self.prev = (arr if out is None else out).copy()
+        return out
 
 
 class LlamaSteer:
@@ -192,6 +255,7 @@ class LlamaSteer:
         self.vocab = L.llama_model_get_vocab(self.model)
         self.n_embd = L.llama_model_n_embd(self.model)
         self.n_layer = L.llama_model_n_layer(self.model)
+        self.perturb = Perturb(self.n_embd)    # drug perturbations written from the eval callback; off unless generate(perturb=...)
         v = np.load(vecs_npz)
         self.layer = int(v["layer"])
         self.vecs = {k: v[k].astype(np.float32) for k in ("pain_s2", "pain_s1", "fear", "sadness", "random")}
@@ -293,8 +357,10 @@ class LlamaSteer:
 
     def _eval_cb(self, t, ask, _ud):
         ro, ac = self.readout, self.act
+        pt = self.perturb
         ro_on, ac_on = ro is not None and ro.on, ac is not None and ac["on"]
-        if not ro_on and not ac_on:
+        pt_on = pt.on and bool(pt.want) and not self._twin_phase     # the twin is never perturbed (it is the baseline)
+        if not ro_on and not ac_on and not pt_on:
             return not ask                      # ask: "not needed"; data phase: keep computing
         t0 = time.perf_counter()
         nm = self.L.base.ggml_get_name(t)
@@ -312,9 +378,10 @@ class LlamaSteer:
             return True
         L = ro.want.get(nm) if ro_on else None
         La = ac["want"].get(nm) if ac_on else None
+        Lp = pt.want.get(nm) if pt_on else None
         if ask:
-            return L is not None or La is not None
-        if L is None and La is None:
+            return L is not None or La is not None or Lp is not None
+        if L is None and La is None and Lp is None:
             return True
         try:
             typ = C.c_int32.from_address(t + T_TYPE).value
@@ -322,6 +389,16 @@ class LlamaSteer:
             ne1 = C.c_int64.from_address(t + T_NE + 8).value
             if typ != GGML_TYPE_F32 or ne0 != self.n_embd:
                 return True
+            if Lp is not None:                  # drug perturbation: write first, so the read-outs below see the stream as it now is
+                blk = np.empty((ne1, ne0), np.float32)
+                self.L.base.ggml_backend_tensor_get(t, blk.ctypes.data, 0, blk.nbytes)
+                new = pt.apply(Lp, blk)
+                if new is not None:
+                    new = np.ascontiguousarray(new, np.float32)
+                    self.L.base.ggml_backend_tensor_set(t, new.ctypes.data, 0, new.nbytes)
+                    pt.n_writes += 1
+                if L is None and La is None:
+                    return True
             if La is not None and ne1 == 1:
                 arr1 = np.empty(ne0, np.float32)
                 self.L.base.ggml_backend_tensor_get(t, arr1.ctypes.data, 0, arr1.nbytes)
@@ -452,6 +529,21 @@ class LlamaSteer:
             raise RuntimeError("tokenize buffer too small")
         return buf, n
 
+    def _bias_ids(self, words, bias):
+        """[(token id, bias)] for the words that are one token in some spelling (" w", " W", "w"); a word that only
+        splits into pieces is left alone (biasing its first piece would hit every word that starts the same way)."""
+        out, seen = [], set()
+        for w in words:
+            w = str(w).strip()
+            if not w:
+                continue
+            for form in (" " + w, " " + w[:1].upper() + w[1:], w):
+                buf, n = self.tokenize(form)
+                if n == 1 and buf[0] not in seen:
+                    seen.add(buf[0])
+                    out.append((int(buf[0]), float(bias)))
+        return out
+
     def piece(self, t):
         buf = C.create_string_buffer(256)
         n = self.L.llama_token_to_piece(self.vocab, t, buf, 256, 0, False)
@@ -460,16 +552,30 @@ class LlamaSteer:
     def generate(self, prompt_text, dose=0.0, which="pain_s2", max_tokens=220, temperature=0.9, top_p=0.95,
                  seed=0, on_piece=None, doses=None, control=None, now_options=None, readout=False,
                  on_readout=None, activity=False, on_activity=None, activity_every=1, on_doses=None,
-                 twin=False, on_twin=None, twin_drop=None, want_prompt_odds=False):
+                 twin=False, on_twin=None, twin_drop=None, want_prompt_odds=False, perturb=None,
+                 stop_after=None, stop_tags=(), avoid_words=(), avoid_bias=0.0, repeat_penalty=1.0):
         """prompt_text is the already-templated chat text. Returns (text, stats).
         doses: {drive: dose} for the drive set (replaces dose/which when given; dose/which add a legacy vector).
         control(i) is called before each generated token i is decoded (and once before the prompt, i = -1); if it
         returns a dict of doses, the vector is rebuilt and re-set there, so the rest of the reply runs under it.
-        stats["trace"] lists (token index, doses, norm) at every change."""
+        stats["trace"] lists (token index, doses, norm) at every change.
+        perturb: {"noise": {layer: sigma}, "gain": (lo, hi, g), "prefill": bool} or None, see Perturb. It runs on the
+        callback context; the twin (if any) stays unperturbed, so the difference map shows what the drug did.
+        stop_after: a section tag ("NOW", "SAY"): the reply ends once that line is complete. stop_tags: section tags
+        the reply must not contain ("REMEMBER", "OVERRIDE"): it ends, cut before the tag, as soon as one begins.
+        (2026-10-24: the local 4B wrote a REMEMBER line on every reply, 26% of its text, some running to max_tokens.)
+        avoid_words / avoid_bias: a logit bias on the single-token forms of those words (" need", " Need", "need");
+        on free text only, never on the NOW grammar. repeat_penalty is accepted and ignored (see make_chain). (The sim
+        has sent both since 2026-10-15; this server ignored them until 2026-10-24.)"""
         L = self.L
         trace = []
         act = self.act if (activity and self.act is not None) else None
-        self.ctx = self.ctx_ro if ((readout and self.readout is not None) or act is not None) else self.ctx_plain
+        prt = self.perturb if perturb else None
+        self.ctx = (self.ctx_ro if ((readout and self.readout is not None) or act is not None or prt is not None)
+                    else self.ctx_plain)
+        if prt is not None:
+            prt.set(**perturb)
+            prt.on, prt.n_writes = True, 0
         if doses is not None or control is not None:
             d0 = control(-1) if control else None
             cur = d0 if d0 is not None else (doses or {})
@@ -481,8 +587,17 @@ class LlamaSteer:
             self.set_dose(dose, which)
         L.llama_memory_clear(L.llama_get_memory(self.ctx), True)
 
+        bias = self._bias_ids(avoid_words, avoid_bias) if avoid_words and avoid_bias else []
+        bias_arr = (_LogitBias * len(bias))(*[_LogitBias(t, b) for t, b in bias]) if bias else None
+
         def make_chain(grammar=None):
             ch = L.llama_sampler_chain_init(L.llama_sampler_chain_default_params())
+            if grammar is None and bias_arr is not None:
+                L.llama_sampler_chain_add(ch, L.llama_sampler_init_logit_bias(L.llama_vocab_n_tokens(self.vocab), len(bias),
+                                                                              C.cast(bias_arr, C.c_void_p)))
+            # repeat_penalty is accepted but not applied: llama_sampler_init_penalties through these bindings turned every
+            # reply into "THTHTH..." at 1.08 (2026-10-24; the penalty arrives as ~0, so repeated tokens win), and the
+            # b10435 header is not on this machine to fix the signature against. The avoid_words bias does the job.
             if grammar is not None:
                 g = L.llama_sampler_init_grammar(self.vocab, grammar.encode(), b"root")
                 if not g:
@@ -504,6 +619,9 @@ class LlamaSteer:
             alts = " | ".join('"' + o.replace("\\", "").replace('"', "") + '"' for o in now_options)
             gram = f'root ::= " "? ( {alts} ) "\\n"'
         gchain, now_state, now_text = None, "before" if gram else "off", ""
+        stop_re = re.compile(r"(?:^|\n)[ \t]*(?:%s)[ \t]*:" % "|".join(stop_tags)) if stop_tags else None
+        after_re = re.compile(r"(?:^|\n)[ \t]*%s[ \t]*:[^\n]*\S[^\n]*\n" % stop_after) if stop_after else None
+        stopped = None
         ro = self.readout if readout else None
         if ro is not None:
             ro.on, ro.mode, ro.tokens, ro.cur = True, "gen", [], {}
@@ -577,8 +695,19 @@ class LlamaSteer:
                 elif now_state == "before" and _NOW_RE.search(raw.decode("utf-8", "replace")[-40:]):
                     now_state = "in"
                     gchain = make_chain(gram)
+                if stop_re is not None:
+                    txt = raw.decode("utf-8", "replace")
+                    m = stop_re.search(txt, max(0, len(txt) - 60))
+                    if m:
+                        raw = txt[:m.start()].rstrip().encode("utf-8") + b"\n"
+                        stopped = "tag"
+                        break
                 if on_piece:
                     on_piece(pc)
+                if stop_after and (now_state == "done" if stop_after == "NOW" and gram else
+                                   bool(after_re.search(raw.decode("utf-8", "replace")))):
+                    stopped = "after"
+                    break
                 one[0] = t
                 if control is not None:
                     nd = control(len(out) - 1)
@@ -630,11 +759,14 @@ class LlamaSteer:
                 ro.on = False
             if act is not None:
                 act["on"] = False
+            if prt is not None:
+                prt.on = False
             self.set_dose(0)
             self.ctx = self.ctx_plain
         stats = {"prompt_tokens": n, "completion_tokens": len(out), "prefill_s": round(t1 - t0, 3),
                  "gen_s": round(t2 - t1, 3), "tok_s": round(len(out) / max(t2 - t1, 1e-9), 1), "trace": trace,
                  "act_ms_per_token": round(1000 * act_s / max(len(out), 1), 3) if act is not None else None,
+                 "perturb_writes": prt.n_writes if prt is not None else None, "stopped": stopped,
                  "now_state": now_state, "now_text": now_text.strip() if now_text else None,
                  "readout_tokens": list(ro.tokens) if ro is not None else None,
                  "pieces": [self.piece(t).decode("utf-8", "replace") for t in out] if control is not None else None}

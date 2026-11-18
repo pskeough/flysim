@@ -10,6 +10,7 @@ rem   run.bat --openrouter     the mind is an online model through OpenRouter in
 rem                            (needs OPENROUTER_API_KEY; the fly's drives reach it only as text, not as steering)
 rem   run.bat --no-voice       do not start the voice server
 rem   Anything else is passed to the simulator, e.g.  run.bat --world labyrinth
+rem   The motor layer defaults to bind (the mind's chosen intent drives the legs); run.bat --l1 off overrides it
 rem
 rem Settings (set NAME=value in this window first, or setx NAME value once):
 rem   FLYSIM_GPU=cuda:0        the card for the brain and the mind
@@ -104,7 +105,7 @@ start "" /b cmd /c ".venv_voice\Scripts\python.exe -u voice\fly_voice_server.py 
 :app
 echo Starting the simulator: building the body and loading 138,639 neurons takes about 15-60 s.
 echo The browser window opens when it is ready. Close this window, or press Ctrl+C, to stop everything.
-".venv\Scripts\python.exe" -m flysim.app --backend %FLYSIM_BACKEND% --device %FLYSIM_GPU% --mind %MIND% --l2 steer %APPARGS%
+".venv\Scripts\python.exe" -m flysim.app --backend %FLYSIM_BACKEND% --device %FLYSIM_GPU% --mind %MIND% --l2 steer --l1 bind %APPARGS%
 set APPERR=%errorlevel%
 if "%APPERR%"=="0" goto quit
 echo The simulator stopped with an error; the message is above.
