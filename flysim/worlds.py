@@ -157,7 +157,9 @@ def _showcase():
                       # water was at (5, -5): 2 mm from the sugar's edge, so the fly stood on both and see-sawed
                       # between feeding and drinking with every thought about "the water and the sweetness" (18 Nov)
                       {"kind": "water", "x": 8.0, "y": -12.0, "strength": 0.9},
-                      {"kind": "heat", "x": -8.0, "y": 7.0, "strength": 0.7},
+                      # fire was at (-8, 7): ~10 mm from the start, and the fly often burned itself in its first
+                      # seconds, before anyone had done anything (18 Nov b-roll). Far enough now to glow, not to reach
+                      {"kind": "heat", "x": -16.0, "y": 14.0, "strength": 0.7},
                       {"kind": "rock", "x": -6.0, "y": -8.0, "size": [1.8, 1.4, 1.1]},
                       {"kind": "pillar", "x": 11.0, "y": 6.0}]}
 

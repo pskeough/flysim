@@ -425,7 +425,9 @@ body.daycycle #tClock { display: inline-flex; }
 body.paused #k-t { color: var(--warn); }
 
 /* ================================================================ HUD: the fly's body */
-#hud { position: absolute; left: 12px; bottom: 12px; z-index: 11; width: 250px; padding: 10px 12px 9px; border-radius: 12px;
+/* top right of the world view: bottom left put it over the thought caption. With the inset view shown (not docked) the
+   inset owns the top right, so the box goes back to bottom left; with the brain column on the right it moves inside it */
+#hud { position: absolute; right: 12px; top: 12px; z-index: 11; width: 250px; padding: 10px 12px 9px; border-radius: 12px;
   background: rgba(10,13,17,.8); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(10px); font-size: 12px; }
 .hrow { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
 #hState { font-weight: 700; font-size: 13px; letter-spacing: .02em; text-transform: uppercase; }

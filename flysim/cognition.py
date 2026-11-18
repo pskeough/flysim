@@ -806,8 +806,11 @@ Leave out SAY, REMEMBER and OVERRIDE when you have nothing for them."""
 # question, a memory). With the location-word bias (LOC_WORDS) it cut location-listing from 60% to 33% on 30 real
 # prompts from the 18 Nov play session (results/mind_tune/20261118_170045.md). The drunk and burn examples are kept.
 MIND_EXAMPLE_POOL = (
-    ("your legs will not go where you put them; the ground tilts",
-     "The ground keeps tipping under me. Something is wrong inside me, and the sweet place feels far away now.",
+    # an example's event line must never be a line the body really sends: with the live drug line here ("your legs
+    # will not go where you put them; the ground tilts") the drunk fly copied this thought word for word, the
+    # example guard dropped every copy, and it went silent for 40 s under ethanol (18 Nov b-roll v3)
+    ("a sour fog came up from the floor and your feet slide",
+     "Each step lands a little left of where I put it. My own legs feel borrowed.",
      "dizzy", "stay"),
     ("the left side of your head: burning, strong",
      "That glow burned me. Whatever I wanted, it is not worth going near that again.", "hurt", "get away from the heat"),
@@ -830,7 +833,7 @@ MIND_SAY_POOL = (
     ('"are you hungry?"', "The humming asks about my belly. Strange that it knows.", "puzzled", "explore",
      "A little. Something sweet would be good."),
     ('"what is your name?"', "The humming wants a word for me. I have never had one.", "curious", "stay",
-     "I have no name. I am just here."),
+     "I have no name. Nobody ever gave me one."),    # was "...I am just here.": it became the answer to everything
     ('"are you scared?"', "The humming asks if I am afraid. Only the hot glow frightens me.", "calm", "explore",
      "Only of the burning glow."),
     ('"where are you going?"', "It wants to know my way. I do not know it myself yet.", "unsure", "explore",
@@ -2709,6 +2712,19 @@ class Cognition:
             self._abort_cur = False
             self._cur_urgent = ""
 
+    def _say_repeats(self, say):
+        """Would this answer re-say one of the fly's last few answers?"""
+        olds = [x["text"] for x in self.talk if x["who"] == "fly"][-4:]
+        import difflib
+
+        def norm(s):
+            s = s.lower().replace("’", "'")
+            s = re.sub(r"\b(i|you|it|that)'m\b", r"\1 am", s).replace("'re", " are").replace("n't", " not").replace("'s", " is")
+            return " ".join(re.sub(r"[^a-z ]+", " ", s).split())
+        # answers are short: content words alone miss "I'm not sure, I'm just here" said again in other contractions
+        return any(difflib.SequenceMatcher(None, norm(say), norm(o)).ratio() >= 0.75 for o in olds) \
+            or too_similar(say, olds, 0.5) or near_repeat(say, olds)
+
     def _answer(self, r, t_now):
         """SAY goes out only on the wake that carries new words from the user, once; those words are then answered
         (also when the fly chose to say nothing), so no later wake answers them again. A SAY with nobody speaking
@@ -2720,6 +2736,9 @@ class Cognition:
             r["say"] = sentence_case(strip_echo(r["say"], " ".join(x["text"] for x in pend)))
         if r and r.get("say") and echoes(r["say"], " ".join(x["text"] for x in pend)):
             self.log.add(t_now, "L2", "say_echo", r["say"])     # it parroted the words back ("Hey little fly wassup")
+            r["say"] = ""
+        if r and r.get("say") and self._say_repeats(r["say"]):
+            self.log.add(t_now, "L2", "say_repeat", r["say"])   # its own earlier answer again: silence reads better
             r["say"] = ""
         if r and r.get("say"):
             self.talk.append({"t": round(t_now, 1), "who": "fly", "text": r["say"], "mode": "say"})
@@ -2759,18 +2778,25 @@ class Cognition:
         t0 = time.time()
         c, r, cost = self._stream(msgs, why_s)
         recent_th = list(self.l2_recent)[-4:]
-        if v2 and r["thought"] and (too_similar(r["thought"], recent_th) or near_repeat(r["thought"], recent3)
+        rep_say = bool(self._pending and r.get("say") and self._say_repeats(r["say"]))
+        if v2 and r["thought"] and (rep_say or too_similar(r["thought"], recent_th) or near_repeat(r["thought"], recent3)
                                     or near_repeat(r["thought"], EXAMPLE_THOUGHTS)):
             # one resample, away from the words of the repeat (logit bias, local) and toward another focus
             n_f = self.l2_n_mind + 1
-            nudge = {"role": "user", "content": msgs[-1]["content"] + "\nYour first try re-said an earlier thought. "
-                     "Say something NEW about what just happened, in different words. Think instead about "
-                     + MIND_FOCI[n_f % len(MIND_FOCI)] + "."}
+            if rep_say:      # the answer re-said an earlier answer to a new question (18 Nov: one line, three questions)
+                q = self._pending[-1]["text"]
+                extra = (f"\nYour first try answered with words you already said to the humming. It just said: \"{q}\". "
+                         "Answer THAT, in new words, from what your body feels now.")
+            else:
+                extra = ("\nYour first try re-said an earlier thought. Say something NEW about what just happened, in "
+                         "different words. Think instead about " + MIND_FOCI[n_f % len(MIND_FOCI)] + ".")
+            nudge = {"role": "user", "content": msgs[-1]["content"] + extra}
             if self.is_local:
-                self._avoid = avoid_words(recent3, also=[r["thought"]])
+                self._avoid = avoid_words(recent3, also=[r["thought"]] + ([r["say"]] if rep_say else []))
             c2, r2, cost2 = self._stream(msgs[:-1] + [nudge], why_s, temperature=1.0)
             cost += cost2
-            if r2["thought"] and not too_similar(r2["thought"], recent_th) and not near_repeat(r2["thought"], EXAMPLE_THOUGHTS):
+            if r2["thought"] and not too_similar(r2["thought"], recent_th) and not near_repeat(r2["thought"], EXAMPLE_THOUGHTS) \
+                    and not (self._pending and r2.get("say") and self._say_repeats(r2["say"])):
                 c, r = c2, r2
             else:
                 self.n_dropped_repeats += 1          # do not put the same subtitle up again

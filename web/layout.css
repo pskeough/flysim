@@ -9,6 +9,7 @@
    the sizes persist in localStorage ('flysim.leftpanel'). Shift+N docks it on the right instead (body.dockr).
    ========================================================================================================== */
 :root { --lw: 380px; --lsplit: 50%; --lpbg: #05070a; }
+body:not(.dock):not(.nopip) #hud { right: auto; top: auto; left: 12px; bottom: 12px; }
 
 /* ---- geometry ---------------------------------------------------------------------------------------- */
 body.dock .view.pip { top: 0; left: 0; right: auto; bottom: auto; width: var(--lw); height: var(--lsplit); aspect-ratio: auto;
@@ -26,11 +27,11 @@ body.present.dock .view.main { margin: 0; width: auto; height: auto; inset: 0 0 
 body.present.dock.dockr .view.main { inset: 0 var(--lw) 0 0; }
 
 /* overlays that belong to the world view but sit on the stage: keep them off the left panel */
-body.dock #hud { left: calc(var(--lw) + 12px); }
-body.dock.dockr #hud { left: 12px; }
+body.dock #hud { left: auto; }                      /* top right of the world view (index.html #hud) */
+body.dock.dockr #hud { left: auto; right: calc(var(--lw) + 12px); }
 body.dock.dockr #keyBtn, body.dock.dockr #keyHelp { right: calc(var(--lw) + 12px); }
-body.dock #banners { left: calc(var(--lw) + 110px); right: 16px; }
-body.dock.dockr #banners { left: 110px; right: calc(var(--lw) + 16px); }
+body.dock #banners { left: calc(var(--lw) + 110px); right: 282px; }   /* stop short of the body box, top right */
+body.dock.dockr #banners { left: 110px; right: calc(var(--lw) + 282px); }
 body.present.dock #banners { left: calc(var(--lw) + 16px); }
 body.dock #vapour { left: var(--lw); }
 body.dock.dockr #vapour { left: 0; right: var(--lw); }

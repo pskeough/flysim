@@ -651,7 +651,7 @@ function camTick(dt) {
 // the things placed around it are both in frame (was d 7.5, el 0.33: every recording began by scrolling out ~20 notches)
 function camHome() {
   if (!havePose) return;
-  const th = bodies[thoraxIdx].position, h = heading(), yaw = Math.atan2(h[1], h[0]) + Math.PI + 0.6, el = 0.56, d = 20;
+  const th = bodies[thoraxIdx].position, h = heading(), yaw = Math.atan2(h[1], h[0]) + Math.PI + 0.6, el = 0.6, d = 27;
   wCtl.target.copy(th);
   wCam.position.set(th.x + d * Math.cos(yaw) * Math.cos(el), th.y + d * Math.sin(yaw) * Math.cos(el), th.z + d * Math.sin(el));
   wCtl.update(); setFollow(true);
@@ -755,10 +755,10 @@ $('grip').addEventListener('pointerdown', (e) => {
 const hud = $('hud');
 function placeHud() {
   hud.classList.toggle('min', !!UI.hudMin); $('hudMin').textContent = UI.hudMin ? '+' : '−'; $('hudMin').title = UI.hudMin ? 'expand' : 'collapse';
-  if (!UI.hudPos) { hud.style.left = hud.style.top = hud.style.bottom = ''; return; }
+  if (!UI.hudPos) { hud.style.left = hud.style.top = hud.style.bottom = hud.style.right = ''; return; }
   const par = hud.offsetParent || document.body;
   const x = Math.max(0, Math.min(par.clientWidth - hud.offsetWidth, UI.hudPos.x)), y = Math.max(0, Math.min(par.clientHeight - hud.offsetHeight, UI.hudPos.y));
-  hud.style.left = x + 'px'; hud.style.top = y + 'px'; hud.style.bottom = 'auto';
+  hud.style.left = x + 'px'; hud.style.top = y + 'px'; hud.style.bottom = hud.style.right = 'auto';
 }
 $('hudMin').addEventListener('pointerdown', (e) => e.stopPropagation());
 $('hudMin').onclick = () => { UI.hudMin = !UI.hudMin; placeHud(); saveUI(); };
