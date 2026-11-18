@@ -440,12 +440,17 @@ class Sim:
         self._ck_key, self._ck_t = key, now
 
     def drain_commands(self):
-        """Apply queued commands (API calls, websocket, REST) on the sim thread."""
-        try:
-            while True:
-                self._handle(self.cmds.get_nowait())
-        except queue.Empty:
-            pass
+        """Apply queued commands (API calls, websocket, REST) on the sim thread. A command that raises is logged and
+        dropped, so one bad command cannot stop the simulation thread."""
+        while True:
+            try:
+                c = self.cmds.get_nowait()
+            except queue.Empty:
+                return
+            try:
+                self._handle(c)
+            except Exception as e:  # noqa: BLE001
+                print(f"command dropped ({type(e).__name__}: {e}): {str(c)[:200]}", flush=True)
 
     def step_window(self):
         t0 = time.perf_counter()
@@ -499,7 +504,7 @@ class Sim:
             self.last_runaway_t = self.sim_t
             self.observer.active_frac = 0.0
             self.events.append("runaway brain state -> membranes reset")
-            self.cog.log.add(self.sim_t, "L0", "runaway", f"brain activity ran away (>2% of neurons for {SEIZURE_MS if self.pharma.any() else RUNAWAY_MS:.0f} ms): membranes reset")
+            self.cog.log.add(self.sim_t, "L0", "runaway", "brain overload: the simulation reset its neurons")
         self.mixer.apply(self.brain)
         self.brain.launch(WINDOW_MS)
         self._others_launch()
