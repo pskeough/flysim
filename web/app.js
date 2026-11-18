@@ -731,6 +731,13 @@ $('bDemo').onclick = () => {
   setTimeout(() => cineSet({ on: true, layout: 'triptych', mode: 'follow', cut: true }), 900);   // the showcase: the triptych stage (Esc or Shift+C leaves it)
 };
 $('bDirector').onclick = () => send({ cmd: 'director', on: !(status && status.director && status.director.on) });
+// New fly (2026-11-18): the server resets the fly, its brain, memory, drugs and order and empties its log and chat;
+// the page empties the thoughts stream and the subtitle to match
+$('bFresh').onclick = () => {
+  send({ cmd: 'fresh_start' });
+  if (typeof freshClear === 'function') freshClear();
+  setTimeout(camHome, 400);
+};
 $('bDock').onclick = () => { UI.dock = UI.dock ? '' : 'left'; layout(); };
 $('demoHintX').onclick = demoSeen;
 // the "New here?" banner no longer pops up by itself (2026-10-19): Settings > Getting started has the demo and the keys
@@ -1613,6 +1620,12 @@ const toEnd = () => { stream.scrollTop = stream.scrollHeight; $('jumpEnd').class
 stream.addEventListener('scroll', () => { if (atEnd()) $('jumpEnd').classList.remove('on'); });
 $('jumpEnd').onclick = toEnd;
 let lastCard = null;
+// New fly: empty the thoughts stream and the subtitle (the server has emptied its log; ids keep counting)
+function freshClear() {
+  stream.innerHTML = '<div id="streamEmpty">A new fly. Its thoughts will appear here.</div>';
+  lastCard = null; liveCard = null; lastThought = ''; lastThoughtText = ''; subUntil = 0;
+  $('jumpEnd').classList.remove('on');
+}
 const lineHTML = (e) => `<span class="t">${e.t.toFixed(1)}</span><span class="lv lv-${e.level}">${LV[e.level] || e.level}</span>${esc(e.text)}<span class="rep"></span>`;
 function stripFor(tail) {
   if (tail && tail.classList.contains('strip') && tail._n < 60) return tail;

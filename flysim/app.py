@@ -269,6 +269,8 @@ class Sim:
             self.lockstep = True                   # frame stepping (lockstep recording): the mind keeps thinking
         elif k == "revive":
             self.revive(bool(c[1]))
+        elif k == "fresh_start":
+            self.fresh_start()
         elif k == "day":
             self.world.set_day(c[1], c[2])
             d = self.world.env()["day"]
@@ -702,6 +704,18 @@ class Sim:
             self.sim_t += win
         self.cog.tick(win)
         return time.perf_counter() - t0
+
+    def fresh_start(self):
+        """The top bar's New fly button: a new fly at the world's start with a reset brain, no memory, no drugs,
+        no order, and an empty chat and thought log. The world as built stays."""
+        cog = self.cog
+        cog._abort_cur = True
+        cog.order = None
+        cog.talk.clear()
+        with cog.log.lock:
+            cog.log.items.clear()                # ids keep counting, so the page's "newer than" check still works
+        self.events.clear()
+        self.revive(True)
 
     def revive(self, fresh):
         """fresh: a new fly at the world's start, with no memory; else the same fly, where it lies."""
@@ -1346,6 +1360,8 @@ def _command(sim: Sim, j: dict):
         sim.cmds.put(("step", int(j.get("n", 10))))
     elif c == "revive":
         sim.cmds.put(("revive", bool(j.get("fresh", False))))
+    elif c == "fresh_start":
+        sim.cmds.put(("fresh_start",))
     elif c == "drug":
         who = j.get("who")
         route = j.get("route", "inject")

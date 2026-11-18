@@ -554,9 +554,65 @@ _MOVES = (("back", "back_up"), ("revers", "back_up"), ("spin left", "rotate_left
           ("stop", "stop"), ("stay", "stop"), ("freeze", "stop"), ("wait", "stop"), ("explore", "none"), ("wander", "none"))
 
 
-def order_choice(order, items, sens):
-    """A user's order when it names a thing ('go to the water', 'get away from the fire') goes through
-    rule_choice; a bare movement ('turn left', 'back up', 'stop') maps straight to its catalog intent."""
+_ORDER_THINGS = (("sugar", ("sugar", "food", "sweet")), ("water", ("water", "drink", "puddle")),
+                 ("bitter", ("bitter", "poison")), ("heat", ("heat", "fire", "flame", "glow")),
+                 ("cold", ("cold", "ice", "frost")), ("rock", ("rock", "stone", "boulder")), ("wall", ("wall",)),
+                 ("pillar", ("pillar", "stem", "stalk", "post")), ("log", ("log", "twig", "stick", "branch")),
+                 ("block", ("block", "obstacle", "box", "cube")))
+_ORDER_AVOID = ("avoid", "away", "flee", "escape", "leave", "get out", "keep clear", "stay away", "run from")
+
+
+def order_target(order, snap):
+    """2026-11-18: an order that names any placed thing ('go to the nearest rock', 'walk to the stem', 'get away
+    from the fire') -> an intent, aimed at the nearest such thing in the whole world (the user points at what they
+    see; the fly need not have seen it). Before this only sugar and water could be approached, and only once the
+    fly remembered them, so 'go to the rock' did nothing for the 40 s the order held. None when no thing is named."""
+    d = order.lower()
+    hit = None
+    for kind, words in _ORDER_THINGS:
+        ms = [m.start() for w in words for m in re.finditer(rf"\b{w}", d)]
+        if ms and (hit is None or min(ms) < hit[0]):
+            hit = (min(ms), kind)
+    if hit is None:
+        return None
+    pos_, kind = hit
+    sens = snap["sens"]
+    pos, h = np.array(sens["pos"][:2]), np.array(sens["heading"][:2])
+    best = None
+    for s in snap.get("world_full", snap["world"]):
+        if s["kind"] != kind:
+            continue
+        to = np.array([s["x"], s["y"]]) - pos
+        dist = float(np.linalg.norm(to))
+        if best is None or dist < best[0]:
+            best = (dist, float(np.degrees(np.arctan2(h[0] * to[1] - h[1] * to[0], h @ to))), s)
+    if best is None:
+        return None
+    dist, b, s = best
+    # edge of the thing plus about half a body; scenery a body-length and a half short, because touching it fires the
+    # bump reflex, which backs the fly off and turned 'go to the rock' into a back-and-forth (18 Nov trace)
+    reach = float(s.get("r") or KINDS_R.get(kind, 1.5)) + (3.5 if kind in SCENERY_ORDER else 1.5)
+    on = kind in ("sugar", "water", "bitter") and any(sens.get(f"{kind}_legs", ()))
+    if any(w in d[max(0, pos_ - 25):pos_] for w in _ORDER_AVOID):
+        return "back_up" if on else (_avoid(dist, b) if dist < 15.0 else "stop")
+    if on or dist <= reach:
+        return "feed" if (on and kind == "sugar") else "stop"
+    return _approach(dist, b)
+
+
+SCENERY_ORDER = ("rock", "wall", "pillar", "log", "block")
+KINDS_R = {"sugar": 1.6, "water": 2.2, "bitter": 1.6, "heat": 1.2, "cold": 1.2, "block": 1.0, "wall": 1.0,
+           "rock": 1.8, "pillar": 0.8, "log": 1.0}
+
+
+def order_choice(order, items, sens, snap=None):
+    """A user's order when it names a thing ('go to the water', 'get away from the fire', 'go to the rock') is
+    aimed at the nearest such thing (order_target); a bare movement ('turn left', 'back up', 'stop') maps straight
+    to its catalog intent."""
+    if snap is not None:
+        t = order_target(order, snap)
+        if t is not None:
+            return t
     i = rule_choice(order, items, sens)
     if i != "none" and i != "stop":
         return i
@@ -744,27 +800,31 @@ Leave out SAY, REMEMBER and OVERRIDE when you have nothing for them."""
 # back as a SAY line in 643 of 2,967 logged replies with nobody speaking, and its "I want it before it goes" became
 # the "find it before it disappears" loop. Now: three examples per wake, rotated from a pool, no SAY example unless
 # words have just reached the fly (then one from MIND_SAY_POOL, chosen to differ from what was asked).
+# 2026-11-18: most of the old pool were status reports ("Still no water anywhere I have been", "Wet at last, right
+# under me") and the 4B copies the kind of thought it is shown: 60-70% of live thoughts listed where things were
+# ("The water is here, and the sweetness is close"). This pool shows other kinds of thought (a guess, a dislike, a
+# question, a memory). With the location-word bias (LOC_WORDS) it cut location-listing from 60% to 33% on 30 real
+# prompts from the 18 Nov play session (results/mind_tune/20261118_170045.md). The drunk and burn examples are kept.
 MIND_EXAMPLE_POOL = (
-    ("something sweet appeared ahead; you were after: explore",
-     "Something sweet, close by. I have been hungry for a while, so that comes first.", "eager", "go to the sugar"),
     ("your legs will not go where you put them; the ground tilts",
      "The ground keeps tipping under me. Something is wrong inside me, and the sweet place feels far away now.",
      "dizzy", "stay"),
     ("the left side of your head: burning, strong",
      "That glow burned me. Whatever I wanted, it is not worth going near that again.", "hurt", "get away from the heat"),
-    ("you bumped into something hard; you were after: the water you remember",
-     "A hard edge in my way. The wet place is on the far side, so around is the only way.", "stubborn",
-     "go to the water you remember"),
-    ("your feet taste WATER; you were after: the water you remember",
-     "Wet at last, right under me. The dry ache inside starts to ease.", "relieved", "stay"),
+    ("tastes water", "Cool on my feet. I wonder where this wet comes from, nothing up there drips.", "curious", "explore"),
     ("nothing new; you were after: explore",
-     "Still no water anywhere I have been. Maybe the far side of the wall has some.", "worried", "explore"),
+     "My left wing itches. Nothing in this place moves unless something moves it.", "restless", "explore"),
     ("another fly stopped moving and lies still",
-     "That fly has gone still and stays still. Whatever did that could be near me too.", "wary", "explore"),
+     "That fly went still and stayed still. I do not like how quiet it is.", "uneasy", "explore"),
     ("something dark swelled over you, then went away",
-     "A shadow came down and lifted again. Every part of me is ready to jump.", "startled", "stay"),
+     "A shadow, then nothing. Was that the sky falling, or something that wants me?", "startled", "stay"),
+    ("tastes sugar", "Sweet. This is the best thing that has happened to me in a long time.", "delighted", "explore"),
+    ("the air turns HOT", "Hot air, like breath from something big. I do not trust that glow.", "wary", "explore"),
     ("the sweetness you remembered is not where it was",
-     "The sweet was right here, and now there is only bare floor. Something moved it.", "puzzled", "explore"),
+     "The sweet was right here. Something keeps moving my world around.", "suspicious", "explore"),
+    ("left antenna touched", "Hard and cold against my head. Rocks do not care about flies.", "annoyed", "explore"),
+    ("nothing new; you were after: stay",
+     "I have been alive a little while now. I wonder how long a while is.", "thoughtful", "stay"),
 )
 MIND_SAY_POOL = (
     ('"are you hungry?"', "The humming asks about my belly. Strange that it knows.", "puzzled", "explore",
@@ -932,6 +992,9 @@ def near_repeat(new, olds):
 # words the local 4B leans on whatever happens ("I need to check if...": 42 of 185 thoughts on 2026-10-24); always in the
 # avoid list, so the server's logit bias weighs against them from the first thought
 TIC_WORDS = ("need", "check", "careful")
+# 2026-11-18: the words of the "X is here, and Y is close" template, weighed against the same way (see the
+# MIND_EXAMPLE_POOL note); places can still be named, the bias only tips the phrasing
+LOC_WORDS = ("here", "close", "near", "behind", "ahead", "nearby")
 _KEEP_WORDS = set("""sugar sweet sweetness water wet bitter bitterness heat hot cold glow wall humming fly""".split())
 
 
@@ -1852,7 +1915,9 @@ class Cognition:
             if k in names and t - self._last_seen.get(k, -1e9) > 1.0:
                 v = s.sensory_layer.out[k][1]
                 self.log.add(t, "L0", "sense", f"{names[k]} ({v:.0f} Hz into its receptor neurons)")
-                if k == "sugar":
+                # finding food cuts in; stepping back onto the same drop does not (18 Nov: at a sugar edge each
+                # re-taste aborted the thought being written, every few seconds, so few thoughts were finished)
+                if k == "sugar" and t - self._last_seen.get(k, -1e9) > 15.0:
                     self.urgent("food")
         ts = sens.get("temp_surface")
         touch = bool(ts) and max(ts) >= FIRE_TOUCH_C
@@ -1957,7 +2022,15 @@ class Cognition:
         directive = self.current_directive()
         ordered = self.order_active()
         t0 = time.perf_counter()
-        bare = ordered and order_choice(directive, items, snap["sens"])
+        bare = ordered and order_choice(directive, items, snap["sens"], snap)
+        if ordered and bare in ("stop", "feed") and order_target(directive, snap) == bare \
+                and not re.search(r"\b(stop|stay|wait|freeze)\b", directive.lower()):
+            # 'go to the rock' and it is there: the order is done, so the fly goes back to its own life instead of
+            # standing still for the rest of ORDER_S
+            self.order = None
+            self.talk.append({"t": round(self.sim.sim_t, 1), "who": "note", "mode": "note", "text": "it got there"})
+            self.log.add(self.sim.sim_t, "user", "release", "it got there: the order is done")
+            ordered = False
         if ordered and (self.l1_mode != "llm" or bare in ("back_up", "turn_left", "turn_right", "rotate_left",
                                                             "rotate_right", "walk_forward", "escape", "groom_antennae")):
             intent = bare              # a bare movement order, or no model to read it: the keyword rule
@@ -2597,6 +2670,16 @@ class Cognition:
         self.l2_live = {"on": True, "text": "", "why": why_s}
         t0 = time.time()
         c, r, cost = self._stream(msgs, why_s, max_tokens=420)      # reasoning tokens count against it: 200 cut the last thought short
+        norm = lambda x: re.sub(r"\W+", " ", str(x or "")).strip().lower()      # noqa: E731
+        if r and r.get("thought") and norm(r["thought"]) in {norm(x) for x in self.l2_recent}:
+            # 18 Nov: crushed, it "died" on a copy of a thought from 20 s earlier ("I felt the heat, but now it's
+            # gone"); ask again without the last thoughts in front of it
+            u2 = "WHAT YOU REMEMBER OF YOUR LIFE:\n" + ("\n".join(eps) or "very little") + "\n"
+            msgs = [{"role": "system", "content": MIND_FINAL.format(how=how)}, {"role": "user", "content": u2}]
+            c2, r2, cost2 = self._stream(msgs, why_s, max_tokens=420)
+            cost += cost2
+            if r2 and r2.get("thought"):
+                c, r = c2, r2
         self.l2_live = {"on": False, "text": "", "why": ""}
         self.l2_last["cost_usd"] = round(self.l2_last["cost_usd"] + cost, 5)
         if not r or not r["thought"]:
@@ -2667,7 +2750,7 @@ class Cognition:
         recent3 = list(self.l2_recent)[-3:]
         if self.is_local:
             aw = avoid_words(recent3)
-            self._avoid = aw + [w for w in TIC_WORDS if w not in aw]
+            self._avoid = aw + [w for w in TIC_WORDS + LOC_WORDS if w not in aw]
         else:
             self._avoid = []
         msgs, why = self.mind_messages(snap, items, lines, evs)

@@ -154,7 +154,9 @@ def _showcase():
     return {"name": "showcase", "title": "Showcase", "desc": "Sugar in view, water to one side, a fire at a distance.",
             "ambient": {"T": 24.0, "H": 40.0}, "fly": {"x": 0.0, "y": 0.0, "heading": 0.0},
             "items": [{"kind": "sugar", "x": 4.5, "y": 0.8, "r": 1.6},
-                      {"kind": "water", "x": 5.0, "y": -5.0, "strength": 0.9},
+                      # water was at (5, -5): 2 mm from the sugar's edge, so the fly stood on both and see-sawed
+                      # between feeding and drinking with every thought about "the water and the sweetness" (18 Nov)
+                      {"kind": "water", "x": 8.0, "y": -12.0, "strength": 0.9},
                       {"kind": "heat", "x": -8.0, "y": 7.0, "strength": 0.7},
                       {"kind": "rock", "x": -6.0, "y": -8.0, "size": [1.8, 1.4, 1.1]},
                       {"kind": "pillar", "x": 11.0, "y": 6.0}]}
